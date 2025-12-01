@@ -1,10 +1,11 @@
+from gevent import monkey
+monkey.patch_all()
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_socketio import SocketIO, join_room, emit
 import random, string, json, os, threading, time, hashlib, hmac, base64
 from datetime import datetime, timedelta
 from functools import wraps
-from gevent import monkey
-monkey.patch_all()
+
 from database import db, init_db, SalaDB
 
 # Importar OpenAI para validación con IA
@@ -2431,7 +2432,7 @@ def get_powerups():
 # ==========================================================
 # PANEL DE SUPER ADMINISTRACIÓN (SOLO PARA EL DESARROLLADOR)
 # ==========================================================
-ADMIN_PASSWORD = "basta2024"  # Cambia esto por tu contraseña
+ADMIN_PASSWORD = "SOIIM0UCABW#$%" # Cambia esto por tu contraseña
 ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "basta_admin_secret_2025_change_this")  # Cambia esto también
 ADMIN_SESSION_DURATION = 3600  # 1 hora en segundos
 
