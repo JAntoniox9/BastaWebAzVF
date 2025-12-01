@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from gevent import monkey
 monkey.patch_all()
+from database import db, init_db, SalaDB
 
 # Importar OpenAI para validación con IA
 try:
@@ -37,6 +38,9 @@ except Exception as e:
 # ==========================================================
 app = Flask(__name__)
 app.secret_key = "basta_secret_2025"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('AZURE_MYSQL_CONNECTIONSTRING')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+init_db(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 timers_activos = {}
 iniciando_partida = set()
@@ -48,7 +52,6 @@ player_id_to_sid = {}  # Mapeo de player ID a socket IDs (un jugador puede tener
 player_id_counter = 0  # Contador para generar IDs únicos
 admin_sockets = set()  # Sockets de administradores conectados
 
-STATE_FILE = "checkpoint.json"
 state = {"salas": {}}
 
 # ==========================================================
@@ -265,23 +268,35 @@ MODOS_JUEGO = {
 # FUNCIONES AUXILIARES
 # ==========================================================
 def load_state():
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, "r") as f:
-                data = json.load(f)
-                if "salas" not in data:
-                    data["salas"] = {}
-                return data
-        except json.JSONDecodeError:
-            return {"salas": {}}
-    return {"salas": {}}
+    """Carga el estado desde la base de datos MySQL"""
+    try:
+        salas_db = SalaDB.query.all()
+        state = {"salas": {}}
+        for sala_db in salas_db:
+            if sala_db.datos:
+                state["salas"][sala_db.codigo] = sala_db.datos
+        return state
+    except Exception as e:
+        print(f"Error cargando estado desde BD: {e}")
+        return {"salas": {}}
 
 # Cargamos el estado al iniciar
 state = load_state()
 
 def save_state(state):
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=4)
+    """Guarda el estado en la base de datos MySQL usando upsert"""
+    try:
+        for codigo, datos_sala in state.get("salas", {}).items():
+            sala_existente = SalaDB.query.get(codigo)
+            if sala_existente:
+                sala_existente.datos = datos_sala
+            else:
+                nueva_sala = SalaDB(codigo=codigo, datos=datos_sala)
+                db.session.add(nueva_sala)
+        db.session.commit()
+    except Exception as e:
+        print(f"Error guardando estado en BD: {e}")
+        db.session.rollback()
 
 
 def generar_codigo():
@@ -2892,6 +2907,40 @@ def expulsar_jugador(codigo):
         "message": f"Jugador {jugador} expulsado correctamente"
     })
 
+
+# ==========================================================
+# ENDPOINTS DE FAILOVER Y HEALTH CHECK
+# ==========================================================
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check para Azure Front Door"""
+    crash_lock_path = "crash.lock"
+    if os.path.exists(crash_lock_path):
+        return jsonify({"status": "unhealthy"}), 500
+    return jsonify({"status": "healthy"}), 200
+
+@app.route('/admin/crash', methods=['POST'])
+def simulate_crash():
+    """Simula una caída del servidor creando crash.lock"""
+    try:
+        with open("crash.lock", "w") as f:
+            f.write("crash")
+        return jsonify({"ok": True, "message": "Crash simulado"}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route('/admin/recover', methods=['POST'])
+def recover():
+    """Elimina crash.lock y recarga el estado"""
+    try:
+        crash_lock_path = "crash.lock"
+        if os.path.exists(crash_lock_path):
+            os.remove(crash_lock_path)
+        global state
+        state = load_state()
+        return jsonify({"ok": True, "message": "Recuperación exitosa"}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # ==========================================================
 # EJECUCIÓN LOCAL

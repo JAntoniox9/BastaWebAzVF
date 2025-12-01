@@ -315,7 +315,7 @@
     } else {
         // Solo continuar si tenemos un jugador válido - envolver todo en else
         (function(jugadorRecuperado, jugador, codigo) {
-    const socket = io("http://127.0.0.1:8081");
+    const socket = io();
     const bastaBtn = document.getElementById("basta-btn");
     const timerText = document.getElementById("timer");
     const timerProgress = document.getElementById("timer-progress");

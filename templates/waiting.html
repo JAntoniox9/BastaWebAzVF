@@ -298,7 +298,7 @@
     });
     
     function inicializarSala() {
-        socket = io("http://127.0.0.1:8081");
+        socket = io();
         esAnfitrion = (jugadorActual === anfitrion);
 
     socket.on("connect", () => {
