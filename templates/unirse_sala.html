@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Unirse a Sala - Basta Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+    <main class="main-container">
+        <section class="card">
+            <div class="form-header">
+                <span class="icon-header">🎮</span>
+                <h2>Unirse a Sala</h2>
+                <p>Ingresa el código que te compartió el anfitrión</p>
+            </div>
+            
+            <form id="join-form" class="form-container">
+                <div class="input-group">
+                    <label for="nombre">Tu Nombre</label>
+                    <input type="text" 
+                           id="nombre" 
+                           placeholder="Escribe tu nombre" 
+                           required
+                           maxlength="20"
+                           autocomplete="off">
+                    <span class="input-icon">👤</span>
+                </div>
+                
+                <div class="input-group">
+                    <label for="codigo">Código de la Sala</label>
+                    <input type="text" 
+                           id="codigo" 
+                           placeholder="XXXXX" 
+                           required 
+                           maxlength="5">
+                    <span class="input-icon">🔑</span>
+                </div>
+                <p class="code-hint">El código tiene 5 caracteres (letras y números)</p>
+                
+                <div class="info-box">
+                    <strong>💡 ¿No tienes código?</strong>
+                    Pídele al anfitrión que te comparta el código de la sala para poder unirte.
+                </div>
+                
+                <button type="submit" class="btn btn-join" id="submit-btn">
+                    <span class="loading-spinner"></span>
+                    <span class="btn-text">Unirse a la Sala</span>
+                </button>
+            </form>
+            
+            <p style="margin-top: 20px; text-align: center;">
+                <a href="/" class="link">← Volver al inicio</a>
+            </p>
+        </section>
+    </main>
+
+    <script>
+    const form = document.getElementById("join-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const btnText = submitBtn.querySelector('.btn-text');
+    const codigoInput = document.getElementById("codigo");
+    
+    codigoInput.addEventListener("input", (e) => {
+        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+    
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const nombre = document.getElementById("nombre").value.trim();
+        const codigo = codigoInput.value.trim().toUpperCase();
+        
+        if (!nombre || nombre === "") {
+            mostrarAlerta("⚠️ Por favor ingresa un nombre válido.", "warning");
+            return;
+        }
+        
+        if (!codigo || codigo === "") {
+            mostrarAlerta("⚠️ Por favor ingresa un código de sala válido.", "warning");
+            return;
+        }
+        
+        if (codigo.length !== 5) {
+            mostrarAlerta("⚠️ El código debe tener exactamente 5 caracteres.", "warning");
+            return;
+        }
+        
+        submitBtn.classList.add('loading');
+        btnText.textContent = 'Uniéndose...';
+        
+        try {
+            const res = await fetch("/join_room", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ nombre, codigo }),
+            });
+            
+            const data = await res.json();
+            
+            if (data.ok) {
+                localStorage.setItem("jugador", nombre);
+                localStorage.setItem("codigo", codigo);
+                // Guardar también en sessionStorage para recuperación después de recarga
+                sessionStorage.setItem(`jugador_${codigo}`, nombre);
+                
+                btnText.textContent = '✓ ¡Unido!';
+                
+                setTimeout(() => {
+                    window.location.href = `/waiting/${codigo}`;
+                }, 500);
+            } else {
+                throw new Error(data.error || "No se encontró la sala");
+            }
+        } catch (error) {
+            submitBtn.classList.remove('loading');
+            btnText.textContent = 'Unirse a la Sala';
+            mostrarAlerta(`❌ ${error.message}`, "error");
+        }
+    });
+    
+    function mostrarAlerta(mensaje, tipo) {
+        const alerta = document.createElement('div');
+        alerta.textContent = mensaje;
+        alerta.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 24px;
+            background: ${tipo === 'error' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'};
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(alerta);
+        
+        setTimeout(() => {
+            alerta.style.animation = 'slideUp 0.3s ease-out';
+            setTimeout(() => alerta.remove(), 300);
+        }, 3000);
+    }
+
+    // Modo Oscuro
+    const darkModeSwitch = document.getElementById("dark-mode-switch");
+    const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+    
+    // Cargar preferencia guardada
+    const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+    if (darkModeEnabled) {
+        document.body.classList.add("dark-mode");
+        darkModeSwitch.checked = true;
+        darkModeIcon.textContent = "☀️";
+    }
+    
+    // Toggle del modo oscuro
+    darkModeSwitch.addEventListener("change", (e) => {
+        if (e.target.checked) {
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("darkMode", "true");
+            darkModeIcon.textContent = "☀️";
+        } else {
+            document.body.classList.remove("dark-mode");
+            localStorage.setItem("darkMode", "false");
+            darkModeIcon.textContent = "🌙";
+        }
+    });
+    </script>
+</body>
+</html>

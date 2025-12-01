@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala de Espera - Basta Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='sounds.js') }}"></script>
+    <style>
+        body {
+            align-items: flex-start;
+            padding-top: clamp(10px, 1.5vw, 20px);
+        }
+        
+        #modal-nombre {
+            display: none;
+        }
+        
+        #modal-nombre.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+
+    <!-- Modal para ingresar nombre -->
+    <div id="modal-nombre" class="modal-overlay">
+        <div class="modal-content">
+            <h3>🎮 Unirse a la Sala</h3>
+            <p>Ingresa tu nombre para unirte a esta partida</p>
+            <form id="form-nombre-modal">
+                <input type="text" 
+                       id="input-nombre-modal" 
+                       placeholder="Tu nombre" 
+                       required 
+                       autofocus
+                       maxlength="20">
+                <button type="submit">Entrar a la Sala</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="waiting-layout">
+        <!-- Panel Principal -->
+        <div class="main-panel">
+        <section class="card">
+                <div class="room-header" style="text-align: center; margin-bottom: 25px;">
+                    <span style="font-size: 2.5em; display: block; margin-bottom: 10px;" class="pulse">🎲</span>
+                    <h2 class="subtitle" style="font-size: 1.5em; font-weight: 700; color: var(--dark);">Sala de Espera</h2>
+                </div>
+                
+                <div class="room-info" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); padding: 20px; border-radius: var(--radius-lg); margin-bottom: 25px; border: 2px solid rgba(99, 102, 241, 0.2);">
+                    <p style="margin: 0; color: var(--gray); font-size: 0.9em;">
+                        <strong style="color: var(--dark);">Anfitrión:</strong> 
+                        {{ anfitrion }}
+                        <span class="feature-badge">👑 Host</span>
+                    </p>
+                    
+                    <div style="text-align: center; margin: 15px 0;">
+                        <span style="font-size: 0.9em; color: var(--gray); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Código de Sala</span>
+                        <div class="code-value title" id="codigo-sala" onclick="copiarCodigo()" style="font-size: 2.5em; letter-spacing: 5px; cursor: pointer;">{{ codigo }}</div>
+                    </div>
+                    
+                    <p style="text-align: center; font-size: 0.85em; color: var(--gray); margin-top: 15px; margin-bottom: 0;">
+                        📋 Click para copiar
+                    </p>
+            </div>
+
+                <div class="scores-section" style="margin: 25px 0;">
+                    <h3 style="font-size: 1.2em; font-weight: 700; color: var(--dark); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <span>🏆</span>
+                        Jugadores
+                    </h3>
+                    <table id="tabla-puntuaciones">
+                <thead>
+                    <tr>
+                                <th>Jugador</th>
+                                <th style="text-align: right;">Puntos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for j, s in puntuaciones.items() %}
+                            {% set es_desconectado = j in (jugadores_desconectados or []) %}
+                            <tr style="{% if es_desconectado %}opacity: 0.6;{% endif %}">
+                                <td style="{% if es_desconectado %}color: #6b7280;{% else %}color: #3b82f6;{% endif %}" data-jugador="{{ j }}">
+                                    {{ j }}
+                                    {% if es_desconectado %}
+                                    <span class="badge" style="background: #9ca3af;">Salió</span>
+                                    {% elif j in jugadores_listos %}
+                                    <span class="badge badge-success">✓ Listo</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right; {% if es_desconectado %}color: #6b7280;{% endif %}">{{ s }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+                </div>
+                
+                <div id="waiting-indicator" style="display: none; text-align: center; padding: 15px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%); border-radius: var(--radius-md); margin: 20px 0; border-left: 4px solid var(--warning);">
+                    <span class="spin" style="display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(245, 158, 11, 0.3); border-top-color: var(--warning); border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
+                    <span id="waiting-text">Esperando jugadores...</span>
+                </div>
+                
+                <p id="error-mensaje" style="color: var(--danger); font-weight: 600; display: none; text-align: center; margin: 15px 0;"></p>
+
+                <button id="btn-iniciar" class="btn btn-host" disabled style="margin-top: 20px;">
+                    <span class="btn-icon">⏱️</span>
+                    Esperando jugadores...
+            </button>
+            
+                <button id="btn-ready" class="btn btn-join" style="display: none; margin-top: 20px;">
+                    <span class="btn-icon">✓</span>
+                ¡Estoy Listo!
+            </button>
+            
+                <p style="text-align: center; margin-top: 20px;">
+                    <a href="/" class="link">← Volver al Menú Principal</a>
+                </p>
+            </section>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="side-panel">
+            <!-- Configuración de la Sala -->
+            <div class="sala-config">
+                <h3 class="config-title"><span>⚙️</span> Configuración</h3>
+                <div class="config-item">
+                    <span class="label">Dificultad</span>
+                    <span class="value" id="config-dificultad">Normal</span>
+                </div>
+                <div class="config-item">
+                    <span class="label">Modo</span>
+                    <span class="value" id="config-modo">Clásico</span>
+                </div>
+                <div class="config-item">
+                    <span class="label">Rondas</span>
+                    <span class="value" id="config-rondas">3</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 0.85em; color: var(--gray); margin-bottom: 8px;">Funciones activas:</p>
+                    <div id="features-container"></div>
+                </div>
+                
+                <div class="config-item" style="margin-top: 15px;">
+                    <span style="font-size: 0.9em; color: var(--dark); font-weight: 600;">🔊 Sonidos</span>
+                    <input type="checkbox" id="sound-toggle" checked style="width: 20px; height: 20px; cursor: pointer;">
+                </div>
+            </div>
+            
+            <!-- Equipos -->
+            <div id="equipos-panel" style="display: none;" class="sala-config">
+                <h3 class="config-title"><span>⚽</span> Equipos</h3>
+                <div id="equipos-container"></div>
+            </div>
+
+            <!-- Chat en Tiempo Real -->
+            <div class="chat-container" id="chat-container">
+                <div class="chat-header">
+                    <span>💬</span>
+                    Chat
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div style="text-align: center; color: var(--gray); font-size: 0.9em; padding: 20px;">
+                        Comienza la conversación...
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" 
+                           id="chat-input" 
+                           class="chat-input" 
+                           placeholder="Escribe un mensaje..."
+                           maxlength="200">
+                    <button id="chat-send" class="chat-send-btn">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const codigoActual = "{{ codigo }}";
+    const anfitrion = "{{ anfitrion }}";
+    const finDelJuego = {{ fin_del_juego|tojson }};
+    let jugadorActual = localStorage.getItem("jugador");
+    let socket = null;
+    let esAnfitrion = false;
+    let chatHabilitado = true;
+    
+    function validarJugador() {
+        return jugadorActual && 
+               jugadorActual !== "null" && 
+               jugadorActual !== "undefined" && 
+               String(jugadorActual).trim() !== "";
+    }
+    
+    const tablaPuntuaciones = document.getElementById("tabla-puntuaciones").getElementsByTagName('tbody')[0];
+    const btnIniciar = document.getElementById("btn-iniciar");
+    const btnReady = document.getElementById("btn-ready");
+    const errorMensaje = document.getElementById("error-mensaje");
+    const waitingIndicator = document.getElementById("waiting-indicator");
+    const waitingText = document.getElementById("waiting-text");
+    const chatMessages = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chat-input");
+    const chatSend = document.getElementById("chat-send");
+    const chatContainer = document.getElementById("chat-container");
+    
+    let totalJugadores = {{ jugadores|length }};
+    let jugadoresListos = {{ jugadores_listos|tojson }};
+    
+    function copiarCodigo() {
+        navigator.clipboard.writeText(codigoActual).then(() => {
+            mostrarNotificacion('✓ Código copiado al portapapeles');
+        });
+    }
+    
+    function mostrarNotificacion(mensaje) {
+        const notif = document.createElement('div');
+        notif.textContent = mensaje;
+        notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: var(--gradient-4);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        `;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 2000);
+    }
+    
+    function agregarMensajeChat(jugador, mensaje, esPropio = false, tipo = "usuario") {
+        const msgDiv = document.createElement('div');
+        
+        if (tipo === "sistema_moderacion") {
+            msgDiv.className = 'chat-message sistema-moderacion';
+        } else {
+            msgDiv.className = 'chat-message' + (esPropio ? ' own' : '');
+        }
+        
+        msgDiv.innerHTML = `
+            <div class="author">${jugador}</div>
+            <div class="text">${mensaje}</div>
+        `;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        const placeholder = chatMessages.querySelector('div[style*="text-align: center"]');
+        if (placeholder) placeholder.remove();
+    }
+    
+    function enviarMensaje() {
+        const mensaje = chatInput.value.trim();
+        if (!mensaje || !socket || !chatHabilitado) return;
+        
+        socket.emit("enviar_mensaje_chat", {
+            codigo: codigoActual,
+            jugador: jugadorActual,
+            mensaje: mensaje
+        });
+        
+        chatInput.value = '';
+    }
+    
+    chatSend.addEventListener("click", enviarMensaje);
+    chatInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") enviarMensaje();
+    });
+    
+    function inicializarSala() {
+        socket = io("http://127.0.0.1:8081");
+        esAnfitrion = (jugadorActual === anfitrion);
+
+    socket.on("connect", () => {
+        socket.emit("join_room_event", { codigo: codigoActual, jugador: jugadorActual });
+    });
+
+    socket.on("player_joined", data => {
+            if (typeof soundSystem !== 'undefined' && chatHabilitado) {
+                soundSystem.playJoin();
+            }
+            
+            tablaPuntuaciones.innerHTML = "";
+        
+        totalJugadores = data.jugadores.length;
+        jugadoresListos = data.jugadores_listos || [];
+        const jugadoresDesconectados = data.jugadores_desconectados || [];
+            
+            if (data.configuracion) {
+                actualizarConfiguracion(data.configuracion);
+            }
+        
+        const jugadoresOrdenados = Object.entries(data.puntuaciones)
+            .sort(([, a], [, b]) => b - a);
+        
+        for (const [jugador, score] of jugadoresOrdenados) {
+            const esDesconectado = jugadoresDesconectados.includes(jugador);
+            const tr = document.createElement("tr");
+                if (esDesconectado) tr.style.opacity = '0.6';
+                
+                let statusBadge = "";
+            if (esDesconectado) {
+                    statusBadge = '<span class="badge" style="background: #9ca3af;">Salió</span>';
+            } else if (jugadoresListos.includes(jugador)) {
+                    statusBadge = '<span class="badge badge-success">✓ Listo</span>';
+            }
+            
+            const colorNombre = esDesconectado ? '#6b7280' : '#3b82f6';
+            
+            tr.innerHTML = `
+                    <td style="color: ${colorNombre};">${jugador}${statusBadge}</td>
+                    <td style="text-align: right;">${score}</td>
+            `;
+            tablaPuntuaciones.appendChild(tr);
+        }
+        
+        actualizarBotonAnfitrion();
+        actualizarBotonListo();
+    });
+        
+        socket.on("nuevo_mensaje_chat", (data) => {
+            const esPropio = data.jugador === jugadorActual;
+            const tipo = data.tipo || "usuario";
+            agregarMensajeChat(data.jugador, data.mensaje, esPropio, tipo);
+            
+            if (typeof soundSystem !== 'undefined') {
+                if (tipo === "sistema_moderacion") {
+                    soundSystem.playError();
+                } else if (!esPropio) {
+                    soundSystem.playMessage();
+                }
+            }
+        });
+        
+        socket.on("mensaje_rechazado", (data) => {
+            mostrarNotificacion(`❌ ${data.razon}`);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playError();
+            }
+        });
+
+        socket.on("configuracion_actualizada", (data) => {
+            actualizarConfiguracion(data);
+            mostrarNotificacion("⚙️ Configuración actualizada");
+    });
+
+    // Manejar redirección a waiting (solo para usuarios que vienen de game.html)
+    socket.on("redirect_to_waiting", (data) => {
+        // Si ya estamos en waiting, no hacer nada
+        // Este evento es principalmente para usuarios que están en game.html
+        if (data.codigo === codigoActual && window.location.pathname.includes('/game/')) {
+            // Desactivar advertencia antes de redirigir (es una acción intencional del servidor)
+            advertenciaActiva = false;
+            window.location.href = `/waiting/${codigoActual}`;
+        }
+    });
+    
+    socket.on("start_game", data => {
+            // Desactivar advertencia antes de redirigir (es una acción intencional del servidor)
+            advertenciaActiva = false;
+            if (data.modo_equipos && data.equipos) {
+                mostrarEquipos(data.equipos);
+                setTimeout(() => {
+                    window.location.href = `/game/${data.codigo}`;
+                }, 2000);
+            } else {
+        window.location.href = `/game/${data.codigo}`;
+            }
+        });
+        
+        socket.on("nuevo_anfitrion", data => {
+            const nuevoAnfitrion = data.nuevo_anfitrion;
+            const mensaje = data.mensaje;
+            
+            mostrarNotificacion(mensaje, "success");
+            
+            if (nuevoAnfitrion === jugador) {
+                const startButton = document.getElementById("start-game-btn");
+                if (startButton) {
+                    startButton.style.display = "block";
+                }
+                mostrarNotificacion("🎉 ¡Ahora eres el anfitrión de la sala!", "success");
+            }
+        });
+        
+        window.addEventListener("load", () => {
+            if (esAnfitrion) {
+                btnIniciar.style.display = "block";
+                btnReady.style.display = "none";
+                actualizarBotonAnfitrion();
+            } else {
+                btnIniciar.style.display = "none";
+                btnReady.style.display = "block";
+                actualizarBotonListo();
+            }
+        });
+        
+        cargarConfiguracionSala();
+    }
+    
+    function actualizarConfiguracion(config) {
+        if (config.dificultad) {
+            document.getElementById("config-dificultad").textContent = config.dificultad;
+        }
+        if (config.modo_juego) {
+            document.getElementById("config-modo").textContent = config.modo_juego;
+        }
+        if (config.rondas) {
+            document.getElementById("config-rondas").textContent = config.rondas;
+        }
+        
+        const featuresContainer = document.getElementById("features-container");
+        featuresContainer.innerHTML = '';
+        
+        if (config.chat_habilitado) {
+            featuresContainer.innerHTML += '<span class="feature-badge">💬 Chat</span>';
+            chatHabilitado = true;
+            chatContainer.style.display = 'flex';
+        } else {
+            chatHabilitado = false;
+            chatContainer.style.display = 'none';
+        }
+        
+        if (config.powerups_habilitados) {
+            featuresContainer.innerHTML += '<span class="feature-badge">⚡ Power-Ups</span>';
+        }
+        
+        if (config.sonidos_habilitados) {
+            featuresContainer.innerHTML += '<span class="feature-badge">🔊 Sonidos</span>';
+        }
+        
+        if (config.validacion_activa) {
+            featuresContainer.innerHTML += '<span class="feature-badge">✅ Validación</span>';
+        }
+    }
+    
+    async function cargarConfiguracionSala() {}
+    
+    function mostrarEquipos(equipos) {
+        const equiposPanel = document.getElementById("equipos-panel");
+        const equiposContainer = document.getElementById("equipos-container");
+        
+        let html = '';
+        for (const [nombreEquipo, miembros] of Object.entries(equipos)) {
+            const color = nombreEquipo.includes('A') ? 'var(--primary)' : 'var(--success)';
+            html += `
+                <div style="margin: 10px 0; padding: 15px; background: white; border-radius: var(--radius-md); border-left: 4px solid ${color};">
+                    <h4 style="margin: 0 0 10px 0; color: ${color}; font-size: 1em;">${nombreEquipo}</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        ${miembros.map(m => `<li style="margin: 5px 0; color: var(--dark);">${m}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        equiposContainer.innerHTML = html;
+        equiposPanel.style.display = 'block';
+        mostrarNotificacion('⚽ ¡Equipos creados!');
+    }
+
+    function actualizarBotonAnfitrion() {
+        if (!esAnfitrion) return; 
+
+        if (finDelJuego) {
+            btnIniciar.disabled = true;
+            btnIniciar.innerHTML = '<span class="btn-icon">🏁</span> Juego Terminado';
+            waitingIndicator.style.display = "none";
+        } else if (totalJugadores === jugadoresListos.length && totalJugadores > 1) {
+            btnIniciar.disabled = false;
+            btnIniciar.innerHTML = '<span class="btn-icon">🚀</span> Iniciar Siguiente Ronda';
+            btnIniciar.onclick = iniciarJuego;
+            waitingIndicator.style.display = "none";
+        } else {
+            btnIniciar.disabled = true;
+            btnIniciar.innerHTML = `<span class="btn-icon">⏱️</span> Esperando jugadores... (${jugadoresListos.length}/${totalJugadores})`;
+            waitingIndicator.style.display = "block";
+            waitingText.textContent = `Esperando a ${totalJugadores - jugadoresListos.length} jugador(es)...`;
+        }
+    }
+    
+    function actualizarBotonListo() {
+        if (esAnfitrion) {
+            btnReady.style.display = "none";
+        } else if (jugadoresListos.includes(jugadorActual)) {
+            btnReady.style.display = "block";
+            btnReady.disabled = true;
+            btnReady.innerHTML = '<span class="btn-icon">✓</span> ¡Listo!';
+        } else {
+            btnReady.style.display = "block";
+            btnReady.disabled = false;
+            btnReady.innerHTML = '<span class="btn-icon">✓</span> ¡Estoy Listo!';
+        }
+    }
+    
+    btnReady.addEventListener("click", () => {
+        socket.emit("player_ready", { codigo: codigoActual, jugador: jugadorActual });
+        
+        if (typeof soundSystem !== 'undefined') {
+            soundSystem.playReady();
+        }
+    });
+
+    function iniciarJuego() {
+        if (esAnfitrion && totalJugadores < 2) {
+            errorMensaje.textContent = "⚠️ Debe haber al menos 2 jugadores para iniciar.";
+            errorMensaje.style.display = "block";
+            return;
+        }
+
+        if (esAnfitrion) {
+            errorMensaje.style.display = "none";
+            // Desactivar advertencia antes de redirigir (es una acción intencional)
+            advertenciaActiva = false;
+            socket.emit("host_is_starting", { codigo: codigoActual, jugador: jugadorActual });
+            setTimeout(() => {
+                window.location.href = `/start/${codigoActual}?jugador=${jugadorActual}`;
+            }, 100);
+        } else {
+            alert("¡Solo el anfitrión puede iniciar el juego!");
+        }
+    }
+    
+    const modal = document.getElementById("modal-nombre");
+    const formNombre = document.getElementById("form-nombre-modal");
+    const inputNombre = document.getElementById("input-nombre-modal");
+    
+    formNombre.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nombre = inputNombre.value.trim();
+        
+        if (!nombre) {
+            alert("⚠️ Por favor ingresa un nombre válido.");
+            return;
+        }
+        
+        try {
+            const res = await fetch("/join_room", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ nombre, codigo: codigoActual }),
+            });
+            
+            const data = await res.json();
+            
+            if (data.ok) {
+                localStorage.setItem("jugador", nombre);
+                localStorage.setItem("codigo", codigoActual);
+                // Guardar también en sessionStorage para recuperación después de recarga
+                sessionStorage.setItem(`jugador_${codigoActual}`, nombre);
+                jugadorActual = nombre;
+                modal.classList.remove("show");
+                inicializarSala();
+            } else {
+                alert(`❌ Error al unirse: ${data.error}`);
+            }
+        } catch (error) {
+            console.error("Error al unirse:", error);
+            alert("❌ Ocurrió un error al intentar unirse a la sala.");
+        }
+    });
+    
+    const soundToggle = document.getElementById("sound-toggle");
+    if (soundToggle) {
+        soundToggle.addEventListener("change", (e) => {
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.setEnabled(e.target.checked);
+                if (e.target.checked) {
+                    soundSystem.playButton();
+                }
+            }
+        });
+    }
+    
+    window.addEventListener("load", () => {
+        if (validarJugador()) {
+            inicializarSala();
+        } else {
+            modal.classList.add("show");
+            inputNombre.focus();
+        }
+    });
+
+    // Modo Oscuro
+    const darkModeSwitch = document.getElementById("dark-mode-switch");
+    const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+    
+    // Cargar preferencia guardada
+    const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+    if (darkModeEnabled) {
+        document.body.classList.add("dark-mode");
+        darkModeSwitch.checked = true;
+        darkModeIcon.textContent = "☀️";
+    }
+    
+    // Toggle del modo oscuro
+    darkModeSwitch.addEventListener("change", (e) => {
+        if (e.target.checked) {
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("darkMode", "true");
+            darkModeIcon.textContent = "☀️";
+        } else {
+            document.body.classList.remove("dark-mode");
+            localStorage.setItem("darkMode", "false");
+            darkModeIcon.textContent = "🌙";
+        }
+    });
+    
+    // Advertencia al intentar salir de la página
+    let advertenciaActiva = true;
+    window.addEventListener("beforeunload", function(e) {
+        if (advertenciaActiva && codigoActual) {
+            // Verificar si hay jugadores en la sala o si el juego está por iniciar
+            const hayJugadores = totalJugadores > 0;
+            const juegoEnCurso = socket && socket.connected;
+            
+            if (hayJugadores || juegoEnCurso) {
+                e.preventDefault();
+                e.returnValue = "¿Estás seguro de que quieres salir? Se perderá tu lugar en la sala.";
+                return e.returnValue;
+            }
+        }
+    });
+    
+    // Desactivar advertencia cuando se salga correctamente
+    function desactivarAdvertencia() {
+        advertenciaActiva = false;
+    }
+    
+    // Desactivar advertencia al hacer clic en botones de salida
+    const salirBtn = document.getElementById("salir-btn");
+    if (salirBtn) {
+        salirBtn.addEventListener("click", desactivarAdvertencia);
+    }
+</script>
+</body>
+</html>

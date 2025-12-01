@@ -1,0 +1,3219 @@
+{
+    "salas": {
+        "2719G": {
+            "anfitrion": "Maria",
+            "jugadores": [
+                "Maria",
+                "Marco",
+                "Ant"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "sonidos_habilitados": true,
+            "powerups_habilitados": false,
+            "chat_habilitado": true,
+            "jugadores_listos": [],
+            "jugadores_ids": {},
+            "ids_jugadores": {},
+            "jugadores_desconectados": [
+                "Ant"
+            ]
+        },
+        "3KRJC": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "59IY9": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "C60NG": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "TFYNB": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "136EM": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "3HCLB": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "DW0YS": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0
+            },
+            "respuestas_ronda": {}
+        },
+        "Q1WWE": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0,
+                "Pedro": 0,
+                "Diego": 400
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [],
+            "letra": "T",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 105,
+            "basta_activado": false
+        },
+        "EOSWO": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0,
+                "Rene": 0,
+                "Antonio": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [],
+            "letra": "V",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 124,
+            "basta_activado": false
+        },
+        "D36V3": {
+            "anfitrion": "Rene",
+            "jugadores": [
+                "Rene"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Rene": 0,
+                "Pepe": 0,
+                "Marco": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [],
+            "letra": "K",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 174,
+            "basta_activado": false
+        },
+        "SZ5VZ": {
+            "anfitrion": "Christopher",
+            "jugadores": [
+                "Christopher"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Christopher": 0,
+                "Ximena": 0,
+                "Camila": 200
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [],
+            "letra": "J",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 136,
+            "basta_activado": false
+        },
+        "AYEPC": {
+            "anfitrion": "Pepe",
+            "jugadores": [
+                "Pepe"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Pepe": 0,
+                "Pedro": 0,
+                "Diego": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [],
+            "letra": "C",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 178,
+            "basta_activado": false
+        },
+        "G2DLL": {
+            "anfitrion": "Mih",
+            "jugadores": [
+                "Mih"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Mih": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "Mih"
+            ]
+        },
+        "PBDB2": {
+            "anfitrion": "sadx",
+            "jugadores": [
+                "sadx"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "sadx": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "sadx"
+            ]
+        },
+        "EUWS1": {
+            "anfitrion": "Antx",
+            "jugadores": [
+                "Antx"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Antx": 0,
+                "Masd": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "Antx"
+            ],
+            "dificultad": "normal",
+            "modo_juego": "equipos",
+            "categorias": [
+                "Serie de TV",
+                "Color",
+                "Videojuego",
+                "Cuerpo de agua",
+                "Nombre",
+                "Monumento",
+                "Marca",
+                "Pel\u00edcula",
+                "Artista musical",
+                "Objeto",
+                "Animal"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Antx": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Antx": 0
+            },
+            "letra": "F",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 174,
+            "basta_activado": false
+        },
+        "Z5333": {
+            "anfitrion": "mi",
+            "jugadores": [
+                "mi"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "mi": 0,
+                "Ant": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "mi"
+            ],
+            "dificultad": "extremo",
+            "modo_juego": "rapido",
+            "categorias": [
+                "Evento hist\u00f3rico",
+                "Nombre",
+                "Profesi\u00f3n",
+                "Objeto",
+                "Fruta",
+                "Pa\u00eds o Ciudad",
+                "Deporte",
+                "Serie de TV",
+                "Empresa",
+                "Pel\u00edcula",
+                "Instrumento musical",
+                "Cuerpo de agua",
+                "Comida",
+                "Color",
+                "Superh\u00e9roe"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": false,
+            "mensajes_chat": [
+                {
+                    "jugador": "mi",
+                    "mensaje": "Hola",
+                    "timestamp": 1763026687.5053866
+                },
+                {
+                    "jugador": "Ant",
+                    "mensaje": "Hola",
+                    "timestamp": 1763026709.1576662
+                },
+                {
+                    "jugador": "Ant",
+                    "mensaje": "Hola",
+                    "timestamp": 1763026712.9421039
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "Como estas",
+                    "timestamp": 1763026717.751859
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "PRUEBA",
+                    "timestamp": 1763026719.8428965
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "PPP",
+                    "timestamp": 1763026720.875002
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "SD",
+                    "timestamp": 1763026721.7295957
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "DS",
+                    "timestamp": 1763026722.506551
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026723.175241
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026723.4113822
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026723.611799
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026723.8404322
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "SS",
+                    "timestamp": 1763026724.2151437
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026724.4948313
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026724.7346525
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "S",
+                    "timestamp": 1763026724.9829288
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "XD",
+                    "timestamp": 1763026725.9178953
+                },
+                {
+                    "jugador": "mi",
+                    "mensaje": "X",
+                    "timestamp": 1763026726.5883973
+                }
+            ],
+            "powerups_jugadores": {
+                "mi": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "mi": 0
+            },
+            "letra": "Z",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 64,
+            "basta_activado": false
+        },
+        "V9ONZ": {
+            "anfitrion": "Ana",
+            "jugadores": [
+                "Ana"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Ana": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "Ana"
+            ],
+            "dificultad": "normal",
+            "modo_juego": "duelo",
+            "categorias": [
+                "Color",
+                "Libro",
+                "Pel\u00edcula",
+                "Comida",
+                "Profesi\u00f3n",
+                "Objeto",
+                "Instrumento musical",
+                "Videojuego",
+                "Personaje famoso",
+                "Fruta",
+                "Cuerpo de agua"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Ana": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Ana": 0
+            }
+        },
+        "C4BL6": {
+            "anfitrion": "Antonioooox",
+            "jugadores": [
+                "Antonioooox"
+            ],
+            "rondas": 3,
+            "estado": "espera",
+            "puntuaciones": {
+                "Antonioooox": 0,
+                "Panchito": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "Antonioooox"
+            ],
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Monumento",
+                "Animal",
+                "Personaje famoso",
+                "Fruta",
+                "Evento hist\u00f3rico",
+                "Empresa",
+                "Videojuego",
+                "Pa\u00eds o Ciudad",
+                "Serie de TV",
+                "Comida",
+                "Artista musical"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [
+                {
+                    "jugador": "Antonioooox",
+                    "mensaje": "Holaaa",
+                    "timestamp": 1763097405.742032,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "Antonioooox",
+                    "mensaje": "MPene",
+                    "timestamp": 1763097407.9554439,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "Antonioooox",
+                    "mensaje": "Peneee",
+                    "timestamp": 1763097414.2898898,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "Antonioooox",
+                    "mensaje": "Pvto",
+                    "timestamp": 1763097421.4284945,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "Antonioooox",
+                    "mensaje": "****o",
+                    "timestamp": 1763097423.155086,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "Sistema",
+                    "mensaje": "\u26a0\ufe0f Mensaje moderado: se detectaron palabras inapropiadas",
+                    "timestamp": 1763097423.1957319,
+                    "tipo": "sistema_moderacion"
+                },
+                {
+                    "jugador": "Antonioooox",
+                    "mensaje": "Vagina",
+                    "timestamp": 1763097436.8583698,
+                    "tipo": "usuario"
+                }
+            ],
+            "powerups_jugadores": {
+                "Antonioooox": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Antonioooox": 0
+            },
+            "letra": "K",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 175,
+            "basta_activado": false
+        },
+        "A43QK": {
+            "anfitrion": "asAS",
+            "jugadores": [
+                "asAS"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "asAS": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "asAS"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Pel\u00edcula",
+                "Animal",
+                "Videojuego",
+                "Empresa",
+                "Marca",
+                "Cuerpo de agua",
+                "Objeto",
+                "Personaje famoso"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "asAS": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "asAS": 0
+            }
+        },
+        "TYOJK": {
+            "anfitrion": "asAS",
+            "jugadores": [
+                "asAS"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "asAS": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "asAS"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Comida",
+                "Canci\u00f3n",
+                "Fruta",
+                "Marca",
+                "Universidad",
+                "Cuerpo de agua",
+                "Videojuego",
+                "Instrumento musical"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "asAS": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "asAS": 0
+            }
+        },
+        "HZU5N": {
+            "anfitrion": "MXSAD",
+            "jugadores": [
+                "MXSAD",
+                "SASD"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "MXSAD": 0,
+                "SASD": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "MXSAD"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Pa\u00eds o Ciudad",
+                "Objeto",
+                "Nombre",
+                "Animal",
+                "Color",
+                "Fruta"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "MXSAD": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "MXSAD": 0
+            },
+            "letra": "R",
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 196,
+            "basta_activado": false,
+            "apelaciones": {
+                "MXSAD:Objeto": {
+                    "jugador": "MXSAD",
+                    "categoria": "Objeto",
+                    "respuesta": "Rinoceronte",
+                    "votos_valida": 0,
+                    "votos_invalida": 0,
+                    "votantes": []
+                }
+            },
+            "validaciones_ia": {
+                "MXSAD:Pa\u00eds o Ciudad": {
+                    "validada_ia": true,
+                    "razon_ia": "Apelaci\u00f3n aceptada por votaci\u00f3n de jugadores"
+                }
+            }
+        },
+        "LNYKO": {
+            "anfitrion": "ANTONY",
+            "jugadores": [
+                "ANTONY"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "ANTONY": 100,
+                "61": 100,
+                "45": 0,
+                "32": 100
+            },
+            "respuestas_ronda": {
+                "32": {
+                    "Color": "",
+                    "Objeto": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Nombre": "Dominguez",
+                    "Fruta": ""
+                },
+                "ANTONY": {
+                    "Color": "dORADO",
+                    "Objeto": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Nombre": "",
+                    "Fruta": ""
+                },
+                "61": {
+                    "Color": "",
+                    "Objeto": "DEDO",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Nombre": "",
+                    "Fruta": ""
+                },
+                "45": {
+                    "Color": "",
+                    "Objeto": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Nombre": "",
+                    "Fruta": ""
+                }
+            },
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "ANTONY"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Color",
+                "Objeto",
+                "Pa\u00eds o Ciudad",
+                "Animal",
+                "Nombre",
+                "Fruta"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "ANTONY": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "ANTONY": 0
+            },
+            "letra": "D",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 211,
+            "basta_activado": false
+        },
+        "94CWP": {
+            "anfitrion": "3123214",
+            "jugadores": [
+                "3123214",
+                "51255",
+                "sad"
+            ],
+            "rondas": 3,
+            "estado": "espera",
+            "puntuaciones": {
+                "Pperuba1": 800,
+                "sad": 0,
+                "3123214": 0,
+                "51255": 0
+            },
+            "respuestas_ronda": {
+                "Pperuba1": {
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": ""
+                },
+                "sad": {
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": ""
+                },
+                "51255": {
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": ""
+                },
+                "3123214": {
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": ""
+                }
+            },
+            "ronda_actual": 3,
+            "jugadores_listos": [
+                "3123214"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Fruta",
+                "Objeto",
+                "Animal",
+                "Color",
+                "Pa\u00eds o Ciudad",
+                "Nombre"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Pperuba1": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Pperuba1": 0
+            },
+            "letra": "Q",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 213,
+            "basta_activado": false
+        },
+        "HR8KH": {
+            "anfitrion": "zasd",
+            "jugadores": [
+                "zasd",
+                "XSADSA"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "zasd": 0,
+                "NAE": 0,
+                "XSADSA": 0,
+                "321421": 0
+            },
+            "respuestas_ronda": {
+                "NAE": {
+                    "Fruta": "",
+                    "Nombre": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": ""
+                },
+                "321421": {
+                    "Fruta": "",
+                    "Nombre": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": ""
+                },
+                "XSADSA": {
+                    "Fruta": "",
+                    "Nombre": "",
+                    "Objeto": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": ""
+                }
+            },
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "zasd"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Fruta",
+                "Nombre",
+                "Objeto",
+                "Animal",
+                "Color",
+                "Pa\u00eds o Ciudad"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "zasd": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "zasd": 0
+            },
+            "letra": "T",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 219,
+            "basta_activado": false
+        },
+        "CLBEV": {
+            "anfitrion": "xd",
+            "jugadores": [
+                "xd",
+                "NAE",
+                "xsad"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "xd": 100,
+                "NAE": 0,
+                "xsad": 0
+            },
+            "respuestas_ronda": {
+                "xd": {
+                    "Animal": "Indio",
+                    "Pa\u00eds o Ciudad": "",
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Color": "",
+                    "Nombre": ""
+                },
+                "NAE": {
+                    "Animal": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Color": "",
+                    "Nombre": ""
+                },
+                "xsad": {
+                    "Animal": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Fruta": "",
+                    "Objeto": "",
+                    "Color": "",
+                    "Nombre": ""
+                }
+            },
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "xd"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Animal",
+                "Pa\u00eds o Ciudad",
+                "Fruta",
+                "Objeto",
+                "Color",
+                "Nombre"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "xd": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "xd": 0
+            },
+            "letra": "I",
+            "apelaciones": {
+                "xd:Fruta": {
+                    "jugador": "xd",
+                    "categoria": "Fruta",
+                    "respuesta": "",
+                    "votos_valida": 0,
+                    "votos_invalida": 0,
+                    "votantes": []
+                }
+            },
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 219,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "xd": {
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "No es un animal reconocible",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "NAE": {
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "xsad": {
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "xd:Animal": {
+                    "validada_ia": true,
+                    "razon_ia": "Apelaci\u00f3n aceptada por votaci\u00f3n de jugadores"
+                }
+            }
+        },
+        "XBVQZ": {
+            "anfitrion": "xd",
+            "jugadores": [
+                "xd"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "ant": 300,
+                "xd": 0
+            },
+            "respuestas_ronda": {
+                "xd": {
+                    "Animal": "",
+                    "Objeto": "",
+                    "Color": "",
+                    "Fruta": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": ""
+                },
+                "ant": {
+                    "Animal": "jaguar",
+                    "Objeto": "",
+                    "Color": "",
+                    "Fruta": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": ""
+                }
+            },
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "xd"
+            ],
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Animal",
+                "Objeto",
+                "Color",
+                "Fruta",
+                "Pa\u00eds o Ciudad",
+                "Nombre"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "ant": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "ant": 0
+            },
+            "letra": "J",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 229,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "xd": {
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "ant": {
+                    "Animal": {
+                        "validada_ia": true,
+                        "razon_ia": "La palabra 'jaguar' es reconocible como un animal real y corresponde a la categor\u00eda 'Animal'. Adem\u00e1s, empieza con la letra 'J'.",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            },
+            "jugadores_desconectados": [
+                "xd"
+            ],
+            "finalizada": true
+        },
+        "4KPSY": {
+            "anfitrion": "ant",
+            "jugadores": [
+                "ant"
+            ],
+            "rondas": 1,
+            "estado": "espera",
+            "puntuaciones": {
+                "Ant": 0,
+                "ant": 0
+            },
+            "respuestas_ronda": {
+                "Ant": {
+                    "Objeto": "",
+                    "Color": "",
+                    "Fruta": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Nombre": ""
+                },
+                "ant": {
+                    "Objeto": "",
+                    "Color": "",
+                    "Fruta": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Nombre": ""
+                }
+            },
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "ant"
+            ],
+            "jugadores_desconectados": [
+                "ant"
+            ],
+            "jugadores_ids": {
+                "Ant": "P000001",
+                "ant": "P000002"
+            },
+            "ids_jugadores": {
+                "P000001": "Ant",
+                "P000002": "ant"
+            },
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Objeto",
+                "Color",
+                "Fruta",
+                "Pa\u00eds o Ciudad",
+                "Animal",
+                "Nombre"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Ant": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Ant": 0
+            },
+            "finalizada": true,
+            "pausada": false,
+            "letra": "U",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 1,
+            "null": false,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "Ant": {
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "ant": {
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        },
+        "1DNVY": {
+            "anfitrion": "Antonio",
+            "jugadores": [
+                "Antonio",
+                "xd"
+            ],
+            "rondas": 5,
+            "estado": "espera",
+            "puntuaciones": {
+                "Antonio": 0,
+                "xd": 0
+            },
+            "respuestas_ronda": {
+                "Antonio": {
+                    "Videojuego": "G",
+                    "Profesi\u00f3n": "",
+                    "Canci\u00f3n": "",
+                    "Marca": "",
+                    "Fruta": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Comida": "",
+                    "Artista musical": "",
+                    "Color": "",
+                    "Objeto": ""
+                },
+                "xd": {
+                    "Videojuego": "",
+                    "Profesi\u00f3n": "",
+                    "Canci\u00f3n": "",
+                    "Marca": "",
+                    "Fruta": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Comida": "",
+                    "Artista musical": "",
+                    "Color": "",
+                    "Objeto": ""
+                }
+            },
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "Antonio"
+            ],
+            "jugadores_desconectados": [
+                "xd"
+            ],
+            "jugadores_ids": {
+                "Antonio": "P000001",
+                "xd": "P000002"
+            },
+            "ids_jugadores": {
+                "P000001": "Antonio",
+                "P000002": "xd"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Videojuego",
+                "Profesi\u00f3n",
+                "Canci\u00f3n",
+                "Marca",
+                "Fruta",
+                "Pa\u00eds o Ciudad",
+                "Animal",
+                "Comida",
+                "Artista musical",
+                "Color",
+                "Objeto"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Antonio": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Antonio": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "G",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 167,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "Antonio": {
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Artista musical": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "xd": {
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Artista musical": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        },
+        "H84NV": {
+            "anfitrion": "xd",
+            "jugadores": [
+                "xd"
+            ],
+            "rondas": 3,
+            "estado": "espera",
+            "puntuaciones": {
+                "Test": 0,
+                "Miguel": 0,
+                "xd": 0
+            },
+            "respuestas_ronda": {
+                "Test": {
+                    "Fruta": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": "",
+                    "Objeto": "",
+                    "Animal": ""
+                },
+                "xd": {
+                    "Fruta": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": "",
+                    "Objeto": "",
+                    "Animal": ""
+                },
+                "Miguel": {
+                    "Fruta": "",
+                    "Color": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Nombre": "",
+                    "Objeto": "",
+                    "Animal": ""
+                }
+            },
+            "ronda_actual": 3,
+            "jugadores_listos": [
+                "xd"
+            ],
+            "jugadores_desconectados": [
+                "xd"
+            ],
+            "jugadores_ids": {
+                "Test": "P000001",
+                "xd": "P000002"
+            },
+            "ids_jugadores": {
+                "P000001": "Test",
+                "P000002": "xd"
+            },
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Fruta",
+                "Color",
+                "Pa\u00eds o Ciudad",
+                "Nombre",
+                "Objeto",
+                "Animal"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [
+                {
+                    "jugador": "xd",
+                    "mensaje": "Hola",
+                    "timestamp": 1764485630.344027,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "xd",
+                    "timestamp": 1764485634.985778,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "x",
+                    "timestamp": 1764485637.2019758,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "dasa",
+                    "timestamp": 1764485637.6199772,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "dasd",
+                    "timestamp": 1764485637.9863172,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "xas",
+                    "timestamp": 1764485638.3696828,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "xsa",
+                    "timestamp": 1764485638.6666074,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "asx",
+                    "timestamp": 1764485639.1389298,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "as",
+                    "timestamp": 1764485639.8943396,
+                    "tipo": "usuario"
+                },
+                {
+                    "jugador": "xd",
+                    "mensaje": "ax",
+                    "timestamp": 1764485640.152899,
+                    "tipo": "usuario"
+                }
+            ],
+            "powerups_jugadores": {
+                "Test": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Test": 0
+            },
+            "finalizada": true,
+            "pausada": false,
+            "letra": "J",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 234,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "Test": {
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "xd": {
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "Miguel": {
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        },
+        "TG7VI": {
+            "anfitrion": "xdxd",
+            "jugadores": [
+                "xdxd",
+                "PANC"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "xdxd": 150,
+                "PANC": 250
+            },
+            "respuestas_ronda": {
+                "PANC": {
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Nombre": "Antonio",
+                    "Objeto": "Arroz",
+                    "Fruta": "Arandana"
+                },
+                "xdxd": {
+                    "Pa\u00eds o Ciudad": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Nombre": "Antonio",
+                    "Objeto": "",
+                    "Fruta": ""
+                }
+            },
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "xdxd"
+            ],
+            "jugadores_desconectados": [
+                "PANC"
+            ],
+            "jugadores_ids": {
+                "xdxd": "P000001"
+            },
+            "ids_jugadores": {
+                "P000001": "xdxd"
+            },
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Pa\u00eds o Ciudad",
+                "Animal",
+                "Color",
+                "Nombre",
+                "Objeto",
+                "Fruta"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "xdxd": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "xdxd": 0
+            },
+            "finalizada": true,
+            "pausada": false,
+            "letra": "A",
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 193,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "PANC": {
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": true,
+                        "razon_ia": "La palabra 'Antonio' es un nombre de persona real y reconocible que comienza con la letra 'A'. Cumple con todas las verificaciones requeridas para ser considerado un Nombre en el juego 'BASTA/Stop'.",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": true,
+                        "razon_ia": "La palabra 'Arroz' es reconocible como un objeto f\u00edsico fabricado o creado, y comienza con la letra 'A'. Cumple con todas las verificaciones requeridas para ser considerada correcta en la categor\u00eda 'Objeto'.",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "No es una palabra reconocible en espa\u00f1ol",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "xdxd": {
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": true,
+                        "razon_ia": "La palabra 'Antonio' es un nombre de persona real y reconocible que comienza con la letra 'A'. Cumple con todas las verificaciones necesarias.",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        },
+        "8YKPZ": {
+            "anfitrion": "Antxa1",
+            "jugadores": [
+                "Antxa1"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Antxa1": 0,
+                "xasd1e": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "Antxa1"
+            ],
+            "jugadores_desconectados": [
+                "Antxa1"
+            ],
+            "jugadores_ids": {
+                "Antxa1": "P000002"
+            },
+            "ids_jugadores": {
+                "P000002": "Antxa1"
+            },
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Nombre",
+                "Pa\u00eds o Ciudad",
+                "Color",
+                "Objeto",
+                "Animal",
+                "Fruta"
+            ],
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Antxa1": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Antxa1": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "W",
+            "inicio_ronda_timestamp": 1764496760.1536353,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 1,
+            "basta_activado": false,
+            "validaciones_ia": {}
+        },
+        "8NRDZ": {
+            "anfitrion": "asdasdasxasdasd",
+            "jugadores": [
+                "asdasdasxasdasd",
+                "Ant"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Ant": 0,
+                "asdasdasxasdasd": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "asdasdasxasdasd"
+            ],
+            "jugadores_desconectados": [
+                "asdasdasxasdasd",
+                "Ant"
+            ],
+            "jugadores_ids": {
+                "Ant": "P000002"
+            },
+            "ids_jugadores": {
+                "P000002": "Ant"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Profesi\u00f3n",
+                "Objeto",
+                "Animal",
+                "Serie de TV",
+                "Comida",
+                "Marca",
+                "Pa\u00eds o Ciudad",
+                "Artista musical",
+                "Fruta",
+                "Videojuego",
+                "Nombre"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Ant": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Ant": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "Q",
+            "inicio_ronda_timestamp": 1764497972.5338478,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 1,
+            "basta_activado": false,
+            "validaciones_ia": {}
+        },
+        "LAO0T": {
+            "anfitrion": "Ant",
+            "jugadores": [
+                "Ant",
+                "xa1234"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Ant": 0,
+                "xa1234": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "Ant"
+            ],
+            "jugadores_desconectados": [
+                "xa1234"
+            ],
+            "jugadores_ids": {
+                "Ant": "P000001"
+            },
+            "ids_jugadores": {
+                "P000001": "Ant"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Videojuego",
+                "Objeto",
+                "Fruta",
+                "Pel\u00edcula",
+                "Artista musical",
+                "Color",
+                "Marca",
+                "Canci\u00f3n",
+                "Serie de TV",
+                "Nombre",
+                "Comida"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Ant": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Ant": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "U",
+            "inicio_ronda_timestamp": 1764521111.522361,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 1,
+            "basta_activado": false,
+            "validaciones_ia": {}
+        },
+        "7AU72": {
+            "anfitrion": "Antx32",
+            "jugadores": [
+                "Antx32",
+                "21415a"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Antx32": 0,
+                "21415a": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "Antx32"
+            ],
+            "jugadores_desconectados": [
+                "21415a"
+            ],
+            "jugadores_ids": {
+                "Antx32": "P000001"
+            },
+            "ids_jugadores": {
+                "P000001": "Antx32"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Nombre",
+                "Comida",
+                "Marca",
+                "Objeto",
+                "Artista musical",
+                "Pel\u00edcula",
+                "Serie de TV",
+                "Color",
+                "Animal",
+                "Pa\u00eds o Ciudad",
+                "Videojuego"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Antx32": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Antx32": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "U",
+            "inicio_ronda_timestamp": 1764521467.9041798,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 1,
+            "basta_activado": false,
+            "validaciones_ia": {}
+        },
+        "GW88V": {
+            "anfitrion": "ert",
+            "jugadores": [
+                "ert"
+            ],
+            "rondas": 3,
+            "estado": "espera",
+            "puntuaciones": {
+                "ant": 0,
+                "ert": 0
+            },
+            "respuestas_ronda": {
+                "ert": {
+                    "Nombre": "",
+                    "Animal": "",
+                    "Profesi\u00f3n": "",
+                    "Pel\u00edcula": "",
+                    "Pa\u00eds o Ciudad": "",
+                    "Canci\u00f3n": "",
+                    "Videojuego": "",
+                    "Color": "",
+                    "Artista musical": "",
+                    "Marca": "",
+                    "Comida": ""
+                }
+            },
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "ert"
+            ],
+            "jugadores_desconectados": [
+                "ert"
+            ],
+            "jugadores_ids": {
+                "ant": "P000002"
+            },
+            "ids_jugadores": {
+                "P000002": "ant"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Nombre",
+                "Animal",
+                "Profesi\u00f3n",
+                "Pel\u00edcula",
+                "Pa\u00eds o Ciudad",
+                "Canci\u00f3n",
+                "Videojuego",
+                "Color",
+                "Artista musical",
+                "Marca",
+                "Comida"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "ant": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "ant": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "U",
+            "inicio_ronda_timestamp": 1764524872.7958486,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 1,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "ert": {
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pel\u00edcula": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pa\u00eds o Ciudad": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Artista musical": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        },
+        "Y7NX1": {
+            "anfitrion": "NO SOY ANFITRION",
+            "jugadores": [
+                "NO SOY ANFITRION"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Anfitrion": 0,
+                "NO SOY ANFITRION": 0
+            },
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [
+                "NO SOY ANFITRION"
+            ],
+            "jugadores_desconectados": [
+                "NO SOY ANFITRION"
+            ],
+            "jugadores_ids": {
+                "Anfitrion": "P000003"
+            },
+            "ids_jugadores": {
+                "P000003": "Anfitrion"
+            },
+            "dificultad": "facil",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Objeto",
+                "Animal",
+                "Color",
+                "Pa\u00eds o Ciudad",
+                "Fruta",
+                "Nombre"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [
+                {
+                    "jugador": "NO SOY ANFITRION",
+                    "mensaje": "HOLA",
+                    "timestamp": 1764525240.630798,
+                    "tipo": "usuario"
+                }
+            ],
+            "powerups_jugadores": {
+                "Anfitrion": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Anfitrion": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "J",
+            "inicio_ronda_timestamp": 1764525207.9002976,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": true,
+            "tiempo_restante": 211
+        },
+        "L3XW5": {
+            "anfitrion": "noanfitrion",
+            "jugadores": [
+                "noanfitrion"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Anfitrioln": 0,
+                "noanfitrion": 0
+            },
+            "respuestas_ronda": {
+                "Anfitrioln": {
+                    "Comida": "",
+                    "Serie de TV": "",
+                    "Profesi\u00f3n": "",
+                    "Objeto": "",
+                    "Canci\u00f3n": "",
+                    "Nombre": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pel\u00edcula": "Ultimo con vida",
+                    "Marca": "Unreal",
+                    "Videojuego": ""
+                },
+                "noanfitrion": {
+                    "Comida": "",
+                    "Serie de TV": "",
+                    "Profesi\u00f3n": "",
+                    "Objeto": "",
+                    "Canci\u00f3n": "",
+                    "Nombre": "",
+                    "Animal": "",
+                    "Color": "",
+                    "Pel\u00edcula": "",
+                    "Marca": "",
+                    "Videojuego": ""
+                }
+            },
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "noanfitrion"
+            ],
+            "jugadores_desconectados": [],
+            "jugadores_ids": {
+                "Anfitrioln": "P000001"
+            },
+            "ids_jugadores": {
+                "P000001": "Anfitrioln"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Comida",
+                "Serie de TV",
+                "Profesi\u00f3n",
+                "Objeto",
+                "Canci\u00f3n",
+                "Nombre",
+                "Animal",
+                "Color",
+                "Pel\u00edcula",
+                "Marca",
+                "Videojuego"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Anfitrioln": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Anfitrioln": 0
+            },
+            "finalizada": false,
+            "pausada": false,
+            "letra": "U",
+            "inicio_ronda_timestamp": 1764525385.0807383,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 41,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "Anfitrioln": {
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Serie de TV": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pel\u00edcula": {
+                        "validada_ia": false,
+                        "razon_ia": "La palabra 'Ultimo con vida' no corresponde a una categor\u00eda reconocible ni a una pel\u00edcula.",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "No es una palabra reconocible en espa\u00f1ol",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "noanfitrion": {
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Serie de TV": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Nombre": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Animal": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pel\u00edcula": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        },
+        "SJZ9W": {
+            "anfitrion": "noanfi",
+            "jugadores": [
+                "noanfi"
+            ],
+            "rondas": 2,
+            "estado": "espera",
+            "puntuaciones": {
+                "Anfitrion": 100,
+                "noanfi": 300
+            },
+            "respuestas_ronda": {
+                "Anfitrion": {
+                    "Serie de TV": "",
+                    "Fruta": "Guayaba",
+                    "Marca": "",
+                    "Comida": "",
+                    "Color": "",
+                    "Videojuego": "",
+                    "Pel\u00edcula": "",
+                    "Profesi\u00f3n": "",
+                    "Objeto": "",
+                    "Artista musical": "",
+                    "Canci\u00f3n": ""
+                },
+                "noanfi": {
+                    "Serie de TV": "Garfielt",
+                    "Fruta": "",
+                    "Marca": "",
+                    "Comida": "",
+                    "Color": "",
+                    "Videojuego": "",
+                    "Pel\u00edcula": "",
+                    "Profesi\u00f3n": "",
+                    "Objeto": "",
+                    "Artista musical": "",
+                    "Canci\u00f3n": ""
+                }
+            },
+            "ronda_actual": 2,
+            "jugadores_listos": [
+                "noanfi"
+            ],
+            "jugadores_desconectados": [],
+            "jugadores_ids": {
+                "Anfitrion": "P000001"
+            },
+            "ids_jugadores": {
+                "P000001": "Anfitrion"
+            },
+            "dificultad": "normal",
+            "modo_juego": "clasico",
+            "categorias": [
+                "Serie de TV",
+                "Fruta",
+                "Marca",
+                "Comida",
+                "Color",
+                "Videojuego",
+                "Pel\u00edcula",
+                "Profesi\u00f3n",
+                "Objeto",
+                "Artista musical",
+                "Canci\u00f3n"
+            ],
+            "categorias_personalizadas": null,
+            "powerups_habilitados": true,
+            "chat_habilitado": true,
+            "sonidos_habilitados": true,
+            "validacion_activa": true,
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {
+                "Anfitrion": {
+                    "tiempo_extra": 0,
+                    "pista": 0,
+                    "cambiar_letra": 0,
+                    "escudo": 0,
+                    "doble_puntos": 0
+                }
+            },
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {
+                "Anfitrion": 0
+            },
+            "finalizada": true,
+            "pausada": false,
+            "letra": "G",
+            "inicio_ronda_timestamp": 1764528223.7937796,
+            "apelaciones": {},
+            "basta": false,
+            "en_curso": false,
+            "tiempo_restante": 141,
+            "basta_activado": false,
+            "validaciones_ia": {
+                "Anfitrion": {
+                    "Serie de TV": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": true,
+                        "razon_ia": "La palabra 'Guayaba' es una fruta reconocible en espa\u00f1ol que empieza con la letra 'G'. Cumple con todas las verificaciones requeridas.",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pel\u00edcula": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Artista musical": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                },
+                "noanfi": {
+                    "Serie de TV": {
+                        "validada_ia": true,
+                        "razon_ia": "Apelaci\u00f3n aceptada por votaci\u00f3n de jugadores",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Fruta": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Marca": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Comida": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Color": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Videojuego": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Pel\u00edcula": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Profesi\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Objeto": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Artista musical": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    },
+                    "Canci\u00f3n": {
+                        "validada_ia": false,
+                        "razon_ia": "Respuesta vac\u00eda o muy corta",
+                        "confianza": 1.0,
+                        "apelable": false
+                    }
+                }
+            }
+        }
+    }
+}

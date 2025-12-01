@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Basta Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="icon">🔐</div>
+            <h1>Panel Admin</h1>
+            <p>Acceso restringido al sistema</p>
+        </div>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label for="password">Contraseña de Administrador</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       placeholder="Ingresa tu contraseña"
+                       required
+                       autofocus>
+            </div>
+            
+            <div class="error-message" id="error-message">
+                ⚠️ Contraseña incorrecta
+            </div>
+            
+            <button type="submit" class="btn btn-host" style="width: 100%; margin-top: 20px;">
+                <span id="btn-text">Iniciar Sesión</span>
+                <span id="loading" style="display: none;">Verificando...</span>
+            </button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="/" class="link">← Volver al inicio</a>
+        </p>
+    </div>
+
+    <script>
+        const form = document.getElementById('login-form');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+        const btnText = document.getElementById('btn-text');
+        const loading = document.getElementById('loading');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = passwordInput.value;
+            
+            btnText.style.display = 'none';
+            loading.style.display = 'inline';
+            errorMessage.classList.remove('show');
+            
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    window.location.href = '/admin';
+                } else {
+                    errorMessage.classList.add('show');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorMessage.textContent = '⚠️ Error de conexión';
+                errorMessage.classList.add('show');
+            } finally {
+                btnText.style.display = 'inline';
+                loading.style.display = 'none';
+            }
+        });
+
+        // Modo Oscuro
+        const darkModeSwitch = document.getElementById("dark-mode-switch");
+        const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+        
+        // Cargar preferencia guardada
+        const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+        if (darkModeEnabled) {
+            document.body.classList.add("dark-mode");
+            darkModeSwitch.checked = true;
+            darkModeIcon.textContent = "☀️";
+        }
+        
+        // Toggle del modo oscuro
+        darkModeSwitch.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                document.body.classList.add("dark-mode");
+                localStorage.setItem("darkMode", "true");
+                darkModeIcon.textContent = "☀️";
+            } else {
+                document.body.classList.remove("dark-mode");
+                localStorage.setItem("darkMode", "false");
+                darkModeIcon.textContent = "🌙";
+            }
+        });
+    </script>
+</body>
+</html>

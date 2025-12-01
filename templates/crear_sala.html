@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Crear Sala - Basta Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+    <main class="main-container">
+        <section class="card">
+            <div class="form-header">
+                <span class="icon-header">👑</span>
+                <h2>Configurar Nueva Sala</h2>
+                <p>Personaliza tu partida con opciones avanzadas</p>
+            </div>
+            
+            <form id="crear-form" class="form-container">
+                <div class="input-group">
+                    <label for="nombre">Tu Nombre (Anfitrión)</label>
+                    <input type="text" 
+                           id="nombre" 
+                           placeholder="Escribe tu nombre" 
+                           required
+                           maxlength="20"
+                           autocomplete="off">
+                </div>
+                
+                <div class="config-section">
+                    <h3><span>🎯</span>Dificultad</h3>
+                    <div class="difficulty-grid">
+                        <input type="radio" id="dif-facil" name="dificultad" value="facil" class="difficulty-card">
+                        <label for="dif-facil" class="difficulty-label">
+                            <span class="icon">😊</span>
+                            <span class="name">Fácil</span>
+                            <span class="time">240 seg</span>
+                        </label>
+                        
+                        <input type="radio" id="dif-normal" name="dificultad" value="normal" class="difficulty-card" checked>
+                        <label for="dif-normal" class="difficulty-label">
+                            <span class="icon">🎯</span>
+                            <span class="name">Normal</span>
+                            <span class="time">180 seg</span>
+                        </label>
+                        
+                        <input type="radio" id="dif-dificil" name="dificultad" value="dificil" class="difficulty-card">
+                        <label for="dif-dificil" class="difficulty-label">
+                            <span class="icon">💪</span>
+                            <span class="name">Difícil</span>
+                            <span class="time">120 seg</span>
+                        </label>
+                        
+                        <input type="radio" id="dif-extremo" name="dificultad" value="extremo" class="difficulty-card">
+                        <label for="dif-extremo" class="difficulty-label">
+                            <span class="icon">🔥</span>
+                            <span class="name">Extremo</span>
+                            <span class="time">90 seg</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="config-section">
+                    <h3><span>🎮</span>Modo de Juego</h3>
+                    <div class="mode-grid">
+                        <input type="radio" id="modo-clasico" name="modo_juego" value="clasico" class="mode-card" checked>
+                        <label for="modo-clasico" class="mode-label">
+                            <span class="icon">🎯</span>
+                            <span>Clásico</span>
+                        </label>
+                        
+                        <input type="radio" id="modo-rapido" name="modo_juego" value="rapido" class="mode-card">
+                        <label for="modo-rapido" class="mode-label">
+                            <span class="icon">⚡</span>
+                            <span>Rápido</span>
+                        </label>
+                        
+                        <input type="radio" id="modo-equipos" name="modo_juego" value="equipos" class="mode-card">
+                        <label for="modo-equipos" class="mode-label">
+                            <span class="icon">🤝</span>
+                            <span>Equipos</span>
+                        </label>
+                        
+                        <input type="radio" id="modo-duelo" name="modo_juego" value="duelo" class="mode-card">
+                        <label for="modo-duelo" class="mode-label">
+                            <span class="icon">⚔️</span>
+                            <span>Duelo</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <label>Número de Rondas</label>
+                <div class="rounds-grid">
+                    <input type="radio" id="round-1" name="rondas" value="1" class="round-option">
+                    <label for="round-1" class="round-label">1</label>
+                    
+                    <input type="radio" id="round-2" name="rondas" value="2" class="round-option">
+                    <label for="round-2" class="round-label">2</label>
+                    
+                    <input type="radio" id="round-3" name="rondas" value="3" class="round-option" checked>
+                    <label for="round-3" class="round-label">3</label>
+                    
+                    <input type="radio" id="round-4" name="rondas" value="4" class="round-option">
+                    <label for="round-4" class="round-label">4</label>
+                    
+                    <input type="radio" id="round-5" name="rondas" value="5" class="round-option">
+                    <label for="round-5" class="round-label">5</label>
+                </div>
+                
+                <button type="submit" class="btn btn-host" id="submit-btn">
+                    <span class="loading-spinner"></span>
+                    <span class="btn-text">Crear Sala</span>
+                </button>
+            </form>
+            
+            <p style="margin-top: 20px; text-align: center;">
+                <a href="/" class="link">← Volver al inicio</a>
+            </p>
+        </section>
+    </main>
+
+    <script>
+    const form = document.getElementById("crear-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const btnText = submitBtn.querySelector('.btn-text');
+    const loadingSpinner = submitBtn.querySelector('.loading-spinner');
+    
+    document.querySelectorAll('.round-label').forEach(label => {
+        label.addEventListener('click', function() {
+            document.querySelectorAll('.round-label').forEach(l => {
+                l.style.background = 'white';
+                l.style.color = 'var(--dark)';
+                l.style.borderColor = 'var(--light)';
+                l.style.transform = 'scale(1)';
+                l.style.boxShadow = 'none';
+            });
+            
+            this.style.background = 'var(--gradient-1)';
+            this.style.color = 'white';
+            this.style.borderColor = 'var(--primary)';
+            this.style.transform = 'scale(1.05)';
+            this.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.3)';
+        });
+    });
+    
+    const selectedRound = document.querySelector('.round-option:checked').id;
+    document.querySelector(`label[for="${selectedRound}"]`).click();
+    
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const nombre = document.getElementById("nombre").value.trim();
+        
+        if (!nombre) {
+            mostrarAlerta("⚠️ Por favor ingresa un nombre válido.", "warning");
+            return;
+        }
+        
+        const config = {
+            nombre: nombre,
+            dificultad: document.querySelector('input[name="dificultad"]:checked').value,
+            modo_juego: document.querySelector('input[name="modo_juego"]:checked').value,
+            rondas: parseInt(document.querySelector('input[name="rondas"]:checked').value),
+            chat_habilitado: true,
+            powerups_habilitados: true,
+            sonidos_habilitados: true,
+            validacion_activa: true
+        };
+        
+        submitBtn.classList.add('loading');
+        loadingSpinner.style.display = 'inline-block';
+        btnText.textContent = 'Creando sala...';
+        
+        try {
+        const res = await fetch("/create_room", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(config),
+        });
+        
+        const data = await res.json();
+        
+        if (data.ok) {
+            localStorage.setItem("jugador", nombre);
+            localStorage.setItem("codigo", data.codigo);
+                
+                btnText.textContent = '✓ ¡Sala creada!';
+                
+                setTimeout(() => {
+            window.location.href = `/waiting/${data.codigo}`;
+                }, 500);
+        } else {
+                throw new Error(data.error || "Error desconocido");
+            }
+        } catch (error) {
+            submitBtn.classList.remove('loading');
+            loadingSpinner.style.display = 'none';
+            btnText.textContent = 'Crear Sala';
+            mostrarAlerta(`❌ Error al crear la sala: ${error.message}`, "error");
+        }
+    });
+    
+    function mostrarAlerta(mensaje, tipo) {
+        const alerta = document.createElement('div');
+        alerta.textContent = mensaje;
+        alerta.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 24px;
+            background: ${tipo === 'error' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'};
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(alerta);
+        
+        setTimeout(() => {
+            alerta.style.animation = 'slideUp 0.3s ease-out';
+            setTimeout(() => alerta.remove(), 300);
+        }, 3000);
+    }
+
+    // Modo Oscuro
+    const darkModeSwitch = document.getElementById("dark-mode-switch");
+    const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+    
+    // Cargar preferencia guardada
+    const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+    if (darkModeEnabled) {
+        document.body.classList.add("dark-mode");
+        darkModeSwitch.checked = true;
+        darkModeIcon.textContent = "☀️";
+    }
+    
+    // Toggle del modo oscuro
+    darkModeSwitch.addEventListener("change", (e) => {
+        if (e.target.checked) {
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("darkMode", "true");
+            darkModeIcon.textContent = "☀️";
+        } else {
+            document.body.classList.remove("dark-mode");
+            localStorage.setItem("darkMode", "false");
+            darkModeIcon.textContent = "🌙";
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partida Finalizada - Basta Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+    <div class="finalizada-container">
+        <div class="finalizada-card">
+            <div class="finalizada-icon">🏁</div>
+            <h1 class="finalizada-title">Partida Finalizada</h1>
+            <p class="finalizada-message">
+                Esta partida ya ha terminado. No puedes unirte a una partida que ya finalizó.
+            </p>
+            <a href="/" class="btn-home">🏠 Volver al Menú Principal</a>
+        </div>
+    </div>
+
+    <script>
+        // Modo Oscuro
+        const darkModeSwitch = document.getElementById("dark-mode-switch");
+        const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+        
+        // Cargar preferencia guardada
+        const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+        if (darkModeEnabled) {
+            document.body.classList.add("dark-mode");
+            darkModeSwitch.checked = true;
+            darkModeIcon.textContent = "☀️";
+        }
+        
+        // Toggle del modo oscuro
+        darkModeSwitch.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                document.body.classList.add("dark-mode");
+                localStorage.setItem("darkMode", "true");
+                darkModeIcon.textContent = "☀️";
+            } else {
+                document.body.classList.remove("dark-mode");
+                localStorage.setItem("darkMode", "false");
+                darkModeIcon.textContent = "🌙";
+            }
+        });
+    </script>
+</body>
+</html>

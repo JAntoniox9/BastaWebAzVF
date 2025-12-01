@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>¡BASTA! - Jugando</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='sounds.js') }}"></script>
+    <style>
+        body {
+            padding: clamp(10px, 1.5vw, 20px);
+            align-items: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+
+    <!-- Modal de Validación -->
+    <div id="validation-modal">
+        <div class="validation-content">
+            <h3>🤔 Validar Respuesta</h3>
+            <p><strong id="val-player"></strong> respondió en <strong id="val-category"></strong>:</p>
+            <div class="answer" id="val-answer"></div>
+            <p style="text-align: center; margin: 15px 0;">¿Es válida esta respuesta?</p>
+            <div class="validation-buttons">
+                <button class="btn btn-host" onclick="votarValidacion('valida')">✓ Sí, es válida</button>
+                <button class="btn btn-danger" onclick="votarValidacion('invalida')">✗ No es válida</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Apelación -->
+    <div id="apelacion-modal">
+        <div class="validation-content">
+            <h3>⚠️ Votación de Apelación</h3>
+            <p><strong id="apel-player"></strong> está apelando su respuesta en <strong id="apel-category"></strong>:</p>
+            <div class="answer" id="apel-answer"></div>
+            <p style="text-align: center; margin: 15px 0; color: var(--gray); font-size: 0.9em;">
+                🤖 La IA marcó esta respuesta como inválida<br>
+                ¿Crees que debería ser aceptada?
+            </p>
+            <div class="validation-buttons">
+                <button class="btn btn-host" onclick="votarApelacion('valida')">✓ Sí, es válida</button>
+                <button class="btn btn-danger" onclick="votarApelacion('invalida')">✗ No es válida</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Validando IA -->
+    <div id="validando-overlay" style="display: none;">
+        <div class="validando-content">
+            <div class="loader-spinner"></div>
+            <h2 class="validando-title">🤖 Validando respuestas con IA...</h2>
+            <p class="validando-subtitle">Por favor espera un momento</p>
+            <div class="progress-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Resultados Completo -->
+    <div id="resultados-modal" style="display: none;">
+        <div class="resultados-modal-content" style="max-width: 1100px; width: 95%; margin: 20px auto;">
+            
+            <!-- Header -->
+            <div class="resultados-header" style="background: var(--gradient-1); color: white; border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 25px 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0; font-size: 1.8em; font-weight: 700;">
+                        🏆 <span id="resultados-titulo-modal">Resultados</span>
+                    </h2>
+                    <span id="resultados-letra-badge" style="background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 20px; font-size: 1.3em; font-weight: 700;"></span>
+                </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div style="display: flex; border-bottom: 2px solid var(--light); background: #f8fafc;">
+                <button class="tab-btn active" data-tab="respuestas">
+                    📋 Respuestas de Todos
+                </button>
+                <button class="tab-btn" data-tab="puntuaciones">
+                    🏅 Puntuaciones
+                </button>
+            </div>
+            
+            <!-- Contenido -->
+            <div class="resultados-body" style="max-height: 60vh; overflow-y: auto;">
+                <div id="tab-respuestas" class="tab-content">
+                    <div id="respuestas-todos-container"></div>
+                </div>
+                
+                <div id="tab-puntuaciones" class="tab-content" style="display: none;">
+                    <div id="resultados-puntuaciones-modal"></div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="resultados-footer" style="background: #f8fafc; border-radius: 0 0 var(--radius-xl) var(--radius-xl);">
+                <div id="ganador-banner" style="display: none; margin-bottom: 15px;"></div>
+                <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                    <button class="btn btn-host" id="btn-continuar-modal" style="margin: 0;">
+                        Continuar ➡️
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Juego Finalizado -->
+    <div id="juego-finalizado-msg" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+        <div class="finalizada-card">
+            <h1 style="font-size: clamp(2em, 5vw, 3em); margin: 0;">🎉</h1>
+            <h2 style="font-size: clamp(1.5em, 4vw, 2em); margin: clamp(15px, 3vw, 20px) 0;">¡Juego Finalizado!</h2>
+            <p style="color: var(--gray); margin-bottom: clamp(20px, 4vw, 30px);">Gracias por jugar</p>
+            <h3 style="font-size: clamp(1em, 2.5vw, 1.3em); margin-bottom: clamp(15px, 3vw, 20px); color: var(--dark);">¿Quieres jugar otra vez?</h3>
+            <div style="display: flex; gap: clamp(10px, 2vw, 15px); justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-host" id="jugar-de-nuevo-btn" style="flex: 1; min-width: 180px;">🔄 Sí, jugar de nuevo</button>
+                <button class="btn btn-danger" id="salir-btn" style="flex: 1; min-width: 150px;">🏠 No, salir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-layout">
+        <!-- Columna Principal -->
+        <div class="game-main">
+            <!-- Header -->
+            <div class="game-header">
+            <div>
+                    <p class="letra-display" id="letra-actual">?</p>
+                    <p class="ronda-info" id="ronda-info-text">
+                        Ronda <span id="ronda-texto">{{ ronda }}</span> de {{ total_rondas }} • 
+                        <span id="jugador-nombre"></span>
+                    </p>
+                </div>
+                
+                <div class="timer-container">
+                    <svg class="timer-circle" width="100" height="100">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6366f1"/>
+                                <stop offset="100%" style="stop-color:#8b5cf6"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="timer-circle-bg" cx="50" cy="50" r="42"/>
+                        <circle class="timer-circle-progress" 
+                                id="timer-progress"
+                                cx="50" cy="50" r="42"
+                                stroke-dasharray="264"
+                                stroke-dashoffset="0"/>
+                    </svg>
+                    <div class="timer-text" id="timer">180</div>
+                </div>
+            </div>
+
+            <!-- Categorías -->
+            <div class="game-card">
+                <div class="categories-grid">
+                    {% for cat in categorias %}
+                    <div class="category-row" data-categoria="{{ cat.nombre }}">
+                        <label class="category-label">
+                            <span style="font-size: 1.3em;">{{ cat.icon }}</span>
+                            {{ cat.nombre }}
+                        </label>
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                            <input type="text" 
+                                   class="category-input campo" 
+                                   data-categoria="{{ cat.nombre }}"
+                                   placeholder="Escribe tu respuesta...">
+                            <div class="validacion-ia" data-categoria="{{ cat.nombre }}" style="display: none;">
+                                <span class="badge-ia"></span>
+                                <button class="btn-apelar" data-categoria="{{ cat.nombre }}" style="display: none;">⚠️ Apelar</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Botón BASTA -->
+            <button id="basta-btn" class="btn">🛑 ¡BASTA!</button>
+
+            <!-- Panel de Resultados -->
+            <div id="resultados-panel" style="display: none;" class="game-card">
+                <h2 style="text-align: center; font-size: 1.8em; color: var(--primary); margin-bottom: 20px;">
+                    🏆 <span id="resultados-titulo">Resultados</span>
+                </h2>
+                <div id="resultados-puntuaciones" style="margin-bottom: 25px;"></div>
+                <button class="btn btn-host" id="btn-continuar" style="margin-top: 25px;">
+                    Continuar ➡️
+                </button>
+            </div>
+
+            <div id="mensaje-final" style="display:none;"></div>
+
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="/waiting/{{ codigo }}" class="link" style="color: white;">← Volver a la sala</a>
+            </p>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="game-sidebar">
+            <!-- Control de Sonidos -->
+            <div class="config-item" style="background: white; box-shadow: var(--shadow-xl); border: 1px solid rgba(255, 255, 255, 0.3);">
+                <span style="font-size: 0.9em; color: var(--dark); font-weight: 600;">🔊 Sonidos</span>
+                <input type="checkbox" id="sound-toggle" checked style="width: 20px; height: 20px; cursor: pointer;">
+            </div>
+            
+            <!-- Power-Ups -->
+            {% if powerups_habilitados %}
+            <div class="powerups-panel">
+                <h3 class="powerups-title"><span>⚡</span>Power-Ups</h3>
+                <div id="powerups-list">
+                    <div class="powerup-item disabled" data-powerup="tiempo_extra">
+                        <div class="powerup-info">
+                            <span class="icon">⏰</span>
+                            <span class="name">Tiempo Extra</span>
+                        </div>
+                        <span class="powerup-count">0</span>
+                    </div>
+                    <div class="powerup-item disabled" data-powerup="pista">
+                        <div class="powerup-info">
+                            <span class="icon">💡</span>
+                            <span class="name">Pista</span>
+                        </div>
+                        <span class="powerup-count">0</span>
+                    </div>
+                    <div class="powerup-item disabled" data-powerup="cambiar_letra">
+                        <div class="powerup-info">
+                            <span class="icon">🔄</span>
+                            <span class="name">Cambiar Letra</span>
+                        </div>
+                        <span class="powerup-count">0</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Chat Mini -->
+            {% if chat_habilitado %}
+            <div class="chat-mini">
+                <div class="chat-header-mini">💬 Chat</div>
+                <div class="chat-messages-mini" id="chat-messages-mini"></div>
+                <div class="chat-input-mini">
+                    <input type="text" id="chat-input-mini" placeholder="Mensaje..." maxlength="100">
+                    <button id="chat-send-mini">Enviar</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+<script>
+    const jugador = localStorage.getItem("jugador");
+    const codigo = "{{ codigo }}";
+    const total_rondas = {{ total_rondas }};
+    const powerupsHabilitados = {{ powerups_habilitados|tojson }};
+    const chatHabilitado = {{ chat_habilitado|tojson }};
+    const validacionActiva = {{ validacion_activa|tojson }};
+    
+    // Guardar código en localStorage para recuperación después de recarga
+    if (codigo) {
+        localStorage.setItem("codigo_sala_actual", codigo);
+    }
+    
+    // Si no hay jugador pero hay código, intentar recuperar del sessionStorage
+    let jugadorRecuperado = jugador;
+    if ((!jugador || jugador === "null" || String(jugador).trim() === "") && codigo) {
+        jugadorRecuperado = sessionStorage.getItem(`jugador_${codigo}`);
+        if (jugadorRecuperado) {
+            localStorage.setItem("jugador", jugadorRecuperado);
+        }
+    } else if (jugador && codigo) {
+        // Si hay jugador, asegurarse de que esté en sessionStorage también
+        sessionStorage.setItem(`jugador_${codigo}`, jugador);
+    }
+    
+    // Verificar si hay una ronda en curso antes de redirigir
+    // Si hay código de sala, intentar reconectarse en lugar de redirigir inmediatamente
+    if (!jugadorRecuperado || jugadorRecuperado === "null" || String(jugadorRecuperado).trim() === "") {
+        // Si hay código, intentar ir a waiting para reconectarse
+        if (codigo) {
+            // Guardar código para reconexión
+            sessionStorage.setItem("codigo_para_reconectar", codigo);
+            // Intentar ir a waiting en lugar de index, ya que puede haber una ronda en curso
+            window.location.href = `/waiting/${codigo}`;
+        } else {
+            // Si no hay código, entonces sí redirigir a join
+            window.location.replace("/join");
+        }
+        // No continuar ejecutando el resto del código si redirigimos
+    } else {
+        // Solo continuar si tenemos un jugador válido - envolver todo en else
+        (function(jugadorRecuperado, jugador, codigo) {
+    const socket = io("http://127.0.0.1:8081");
+    const bastaBtn = document.getElementById("basta-btn");
+    const timerText = document.getElementById("timer");
+    const timerProgress = document.getElementById("timer-progress");
+    const inputs = document.querySelectorAll(".campo");
+    const letraElemento = document.getElementById("letra-actual");
+    const rondaTexto = document.getElementById("ronda-texto");
+    const jugadorNombre = document.getElementById("jugador-nombre");
+    const juegoFinalizadoMsg = document.getElementById("juego-finalizado-msg");
+    const jugarDeNuevoBtn = document.getElementById("jugar-de-nuevo-btn");
+    const salirBtn = document.getElementById("salir-btn");
+    
+    // Usar jugadorRecuperado si está disponible, sino usar jugador
+    const jugadorFinal = jugadorRecuperado || jugador;
+    jugadorNombre.textContent = jugadorFinal;
+    
+    let apelacionesUsadas = new Set();
+    const MAX_APELACIONES = 2;
+    
+    function solicitarApelacion(categoria, respuesta) {
+        if (apelacionesUsadas.size >= MAX_APELACIONES) {
+            mostrarNotificacion(`❌ Ya usaste tus ${MAX_APELACIONES} apelaciones de esta ronda`);
+            return;
+        }
+        
+        if (apelacionesUsadas.has(categoria)) {
+            mostrarNotificacion(`❌ Ya apelaste esta categoría`);
+            return;
+        }
+        
+        apelacionesUsadas.add(categoria);
+        
+        const btns = document.querySelectorAll('.btn-apelar-card');
+        btns.forEach(btn => {
+            // Buscar el botón por el atributo data-categoria
+            const btnCategoria = btn.getAttribute('data-categoria');
+            if (btnCategoria === categoria) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Enviada';
+            }
+        });
+        
+        socket.emit("solicitar_apelacion", {
+            codigo: codigo,
+            jugador: jugadorFinal,
+            categoria: categoria,
+            respuesta: respuesta
+        });
+        
+        mostrarNotificacion(`⚠️ Apelación enviada para "${categoria}". (${apelacionesUsadas.size}/${MAX_APELACIONES} usadas)`);
+    }
+    
+    // Hacer la función disponible globalmente para onclick inline
+    window.solicitarApelacion = solicitarApelacion;
+    
+    const soundToggle = document.getElementById("sound-toggle");
+    if (soundToggle) {
+        soundToggle.addEventListener("change", (e) => {
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.setEnabled(e.target.checked);
+                if (e.target.checked) {
+                    soundSystem.playButton();
+                }
+            }
+        });
+    }
+    
+    const circleRadius = 42;
+    const circleCircumference = 2 * Math.PI * circleRadius;
+    let tiempoTotal = 180;
+    
+    function actualizarTimerCircular(segundos) {
+        const progreso = segundos / tiempoTotal;
+        const offset = circleCircumference * (1 - progreso);
+        timerProgress.style.strokeDashoffset = offset;
+        
+        if (segundos <= 30) {
+            timerText.classList.add("warning");
+        } else {
+            timerText.classList.remove("warning");
+        }
+    }
+    
+    function guardarRespuestas() {
+        const respuestas = {};
+        inputs.forEach(input => {
+            const cat = input.getAttribute("data-categoria");
+            respuestas[cat] = input.value.trim();
+        });
+        localStorage.setItem(`respuestas_${codigo}`, JSON.stringify(respuestas));
+    }
+    
+    function recuperarRespuestas() {
+        const respuestasGuardadas = localStorage.getItem(`respuestas_${codigo}`);
+        if (respuestasGuardadas) {
+            try {
+                const respuestas = JSON.parse(respuestasGuardadas);
+                inputs.forEach(input => {
+                    const cat = input.getAttribute("data-categoria");
+                    if (respuestas[cat]) {
+                        input.value = respuestas[cat];
+                        if (input.value.trim()) {
+                            input.classList.add("filled");
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Error recuperando respuestas:", e);
+            }
+        }
+    }
+    
+    recuperarRespuestas();
+    
+    inputs.forEach(input => {
+        input.addEventListener("input", () => {
+            if (input.value.trim()) {
+                input.classList.add("filled");
+            } else {
+                input.classList.remove("filled");
+            }
+            guardarRespuestas();
+        });
+    });
+    
+    // Chat
+    if (chatHabilitado) {
+        const chatMessages = document.getElementById("chat-messages-mini");
+        const chatInput = document.getElementById("chat-input-mini");
+        const chatSend = document.getElementById("chat-send-mini");
+        
+        function agregarMensajeChat(jugadorChat, mensaje, tipo = "usuario") {
+            const msgDiv = document.createElement('div');
+            
+            if (tipo === "sistema_moderacion") {
+                msgDiv.className = 'chat-message-mini sistema-moderacion';
+            } else {
+                msgDiv.className = 'chat-message-mini';
+            }
+            
+            msgDiv.innerHTML = `
+                <div class="author">${jugadorChat}</div>
+                <div>${mensaje}</div>
+            `;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function enviarMensaje() {
+            const mensaje = chatInput.value.trim();
+            if (!mensaje) return;
+            
+            socket.emit("enviar_mensaje_chat", {
+                codigo: codigo,
+                jugador: jugadorFinal,
+                mensaje: mensaje
+            });
+            
+            chatInput.value = '';
+        }
+        
+        chatSend.addEventListener("click", enviarMensaje);
+        chatInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") enviarMensaje();
+        });
+        
+        socket.on("nuevo_mensaje_chat", (data) => {
+            const tipo = data.tipo || "usuario";
+            agregarMensajeChat(data.jugador, data.mensaje, tipo);
+            
+            if (typeof soundSystem !== 'undefined') {
+                if (tipo === "sistema_moderacion") {
+                    soundSystem.playError();
+                } else if (data.jugador !== jugadorFinal) {
+                    soundSystem.playMessage();
+                }
+            }
+        });
+        
+        socket.on("mensaje_rechazado", (data) => {
+            mostrarNotificacion(`❌ ${data.razon}`);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playError();
+            }
+        });
+    }
+    
+    // Power-ups
+    if (powerupsHabilitados) {
+        document.querySelectorAll('.powerup-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.classList.contains('disabled')) return;
+                
+                const powerup = this.dataset.powerup;
+                socket.emit("usar_powerup", {
+                    codigo: codigo,
+                    jugador: jugador,
+                    powerup: powerup
+                });
+            });
+        });
+        
+        socket.on("powerup_usado", (data) => {
+            mostrarNotificacion(`${data.mensaje}`);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playPowerup();
+            }
+        });
+        
+        socket.on("letra_cambiada", (data) => {
+            letraElemento.textContent = data.letra;
+            mostrarNotificacion(`🔄 ${data.jugador} cambió la letra a ${data.letra}!`);
+        });
+        
+        socket.on("powerup_recibido", (data) => {
+            if (data.jugador === jugadorFinal) {
+                actualizarPowerup(data.powerup, data.cantidad);
+            }
+        });
+    }
+    
+    function actualizarPowerup(powerup, cantidad) {
+        const item = document.querySelector(`[data-powerup="${powerup}"]`);
+        if (item) {
+            const countSpan = item.querySelector('.powerup-count');
+            countSpan.textContent = cantidad;
+            
+            if (cantidad > 0) {
+                item.classList.remove('disabled');
+            } else {
+                item.classList.add('disabled');
+            }
+        }
+    }
+    
+    function mostrarNotificacion(mensaje) {
+        const notif = document.createElement('div');
+        notif.textContent = mensaje;
+        notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: var(--gradient-4);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        `;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 3000);
+    }
+    
+    // Socket events
+    socket.on("connect", () => {
+        socket.emit("rejoin_room_event", { codigo: codigo, jugador: jugadorRecuperado || jugador });
+    });
+    
+    // Redirigir automáticamente a waiting cuando el anfitrión inicia una nueva ronda
+    socket.on("redirect_to_waiting", (data) => {
+        if (data.codigo === codigo) {
+            // Limpiar respuestas del localStorage antes de redirigir (nueva ronda)
+            localStorage.removeItem(`respuestas_${codigo}`);
+            // Limpiar también la ronda guardada para que se detecte como nueva ronda
+            sessionStorage.removeItem(`ronda_${codigo}`);
+            
+            // Desactivar advertencia antes de redirigir (es una acción intencional del servidor)
+            advertenciaActiva = false;
+            
+            // Redirigir a la sala de espera
+            window.location.href = `/waiting/${codigo}`;
+        }
+    });
+
+    socket.on("restore_state", data => {
+        letraElemento.textContent = data.letra || "?";
+        rondaTexto.textContent = data.ronda || 1;
+        
+        const tiempo = data.tiempo_restante || 0;
+        timerText.textContent = tiempo;
+        tiempoTotal = tiempo;
+        actualizarTimerCircular(tiempo);
+        
+        // Limpiar respuestas cuando se inicia una nueva ronda
+        // Solo recuperar respuestas si es una reconexión durante la misma ronda
+        const respuestasGuardadas = localStorage.getItem(`respuestas_${codigo}`);
+        const rondaEnCurso = data.en_curso || false;
+        const rondaActual = data.ronda || 1;
+        const rondaGuardada = sessionStorage.getItem(`ronda_${codigo}`);
+        
+        // Si cambió la ronda o no hay ronda guardada, limpiar respuestas
+        if (rondaGuardada && parseInt(rondaGuardada) !== rondaActual) {
+            // Nueva ronda: limpiar todo
+            inputs.forEach(input => {
+                input.value = '';
+                input.disabled = false;
+                input.classList.remove('filled');
+            });
+            localStorage.removeItem(`respuestas_${codigo}`);
+            sessionStorage.setItem(`ronda_${codigo}`, rondaActual.toString());
+        } else if (!rondaEnCurso || !respuestasGuardadas) {
+            // Nueva ronda o sin respuestas guardadas: limpiar
+            inputs.forEach(input => {
+                input.value = '';
+                input.disabled = false;
+                input.classList.remove('filled');
+            });
+            localStorage.removeItem(`respuestas_${codigo}`);
+            sessionStorage.setItem(`ronda_${codigo}`, rondaActual.toString());
+        } else {
+            // Reconexión en la misma ronda: recuperar respuestas guardadas
+            recuperarRespuestas();
+            inputs.forEach(input => {
+                input.disabled = !rondaEnCurso;
+            });
+            sessionStorage.setItem(`ronda_${codigo}`, rondaActual.toString());
+        }
+        
+        apelacionesUsadas = new Set();
+        colaApelaciones = [];
+        modalApelacionAbierto = false;
+        apelacionActual = null;
+        
+        const apelModal = document.getElementById("apelacion-modal");
+        if (apelModal) apelModal.classList.remove("show");
+        
+        const bastaBtn = document.getElementById('basta-btn');
+        if (bastaBtn) {
+            bastaBtn.style.display = 'block';
+            if (rondaEnCurso) {
+                iniciarCooldownBasta(30);
+            }
+        }
+        
+        const resultadosModal = document.getElementById('resultados-modal');
+        if (resultadosModal) resultadosModal.style.display = 'none';
+        
+        if (typeof soundSystem !== 'undefined' && !rondaEnCurso) {
+            soundSystem.playStart();
+        }
+    });
+
+    socket.on("update_timer", data => {
+        const segundos = data.tiempo;
+        const pausada = data.pausada || false;
+        
+        if (pausada) {
+            timerText.textContent = "⏸️";
+            timerText.style.color = "#f59e0b";
+            timerText.style.fontSize = "2em";
+        } else {
+            timerText.textContent = segundos;
+            timerText.style.color = "";
+            timerText.style.fontSize = "";
+            actualizarTimerCircular(segundos);
+            
+            if (segundos === 30 && typeof soundSystem !== 'undefined') {
+                soundSystem.playWarning();
+            }
+            
+            if (segundos <= 10 && typeof soundSystem !== 'undefined') {
+                soundSystem.playTick();
+            }
+        }
+    });
+    
+    socket.on("ronda_pausada", data => {
+        const pausada = data.pausada;
+        const rondaInfoText = document.getElementById("ronda-info-text");
+        
+        if (pausada) {
+            timerText.textContent = "⏸️";
+            timerText.style.color = "#f59e0b";
+            timerText.style.fontSize = "2em";
+            
+            if (rondaInfoText) {
+                rondaInfoText.innerHTML = '<span style="color: #f59e0b; font-weight: 700;">⏸️ RONDA PAUSADA</span>';
+            }
+            
+            inputs.forEach(input => input.disabled = true);
+            bastaBtn.disabled = true;
+            bastaBtn.textContent = "⏸️ RONDA PAUSADA";
+            
+            mostrarNotificacion(data.mensaje || "Ronda pausada por administrador");
+        } else {
+            timerText.style.color = "";
+            timerText.style.fontSize = "";
+            
+            if (rondaInfoText) {
+                rondaInfoText.innerHTML = `Ronda <span id="ronda-texto">${rondaTexto.textContent}</span> de ${total_rondas} •`;
+            }
+            
+            inputs.forEach(input => input.disabled = false);
+            bastaBtn.disabled = false;
+            bastaBtn.textContent = "✋ ¡BASTA!";
+            
+            mostrarNotificacion(data.mensaje || "Ronda reanudada");
+        }
+    });
+    
+    socket.on("jugador_expulsado", data => {
+        if (data.jugador === jugador) {
+            mostrarNotificacion("Has sido expulsado de la sala por el administrador");
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 2000);
+        } else {
+            mostrarNotificacion(data.mensaje);
+        }
+    });
+
+    socket.on("basta_triggered", data => {
+        if (bastaCooldownInterval) {
+            clearInterval(bastaCooldownInterval);
+            bastaCooldownInterval = null;
+        }
+        bastaCooldownSegundos = 0;
+        
+        bastaBtn.disabled = true;
+        bastaBtn.textContent = "⏱️ TIEMPO TERMINADO";
+        inputs.forEach(input => input.disabled = true);
+        enviarRespuestas();
+        
+        if (typeof soundSystem !== 'undefined') {
+            soundSystem.playBasta();
+        }
+        
+        document.getElementById('validando-overlay').style.display = 'flex';
+    });
+
+    socket.on("round_results", data => {
+        if (data.fin_del_juego) {
+            partidaFinalizada = true;
+            localStorage.removeItem(`respuestas_${codigo}`);
+            bastaBtn.disabled = true;
+            bastaBtn.textContent = "🏁 Partida Finalizada";
+        }
+        document.getElementById('validando-overlay').style.display = 'none';
+        mostrarResultados(data);
+    });
+    
+    socket.on("nuevo_anfitrion", data => {
+        const nuevoAnfitrion = data.nuevo_anfitrion;
+        const mensaje = data.mensaje;
+        
+        mostrarNotificacion(mensaje);
+        
+        if (nuevoAnfitrion === jugador) {
+            mostrarNotificacion("🎉 ¡Ahora eres el anfitrión de la sala!");
+        }
+    });
+    
+    // Validación
+    if (validacionActiva) {
+        socket.on("iniciar_votacion", (data) => {
+            mostrarVotacion(data.jugador, data.categoria, data.respuesta);
+        });
+        
+        socket.on("respuesta_invalidada", (data) => {
+            mostrarNotificacion(`❌ Respuesta de ${data.jugador} invalidada (-${data.puntos_perdidos} puntos)`);
+        });
+        
+        socket.on("respuesta_validada", (data) => {
+            mostrarNotificacion(`✅ Respuesta de ${data.jugador} validada`);
+        });
+    }
+    
+    socket.on("iniciar_votacion_apelacion", (data) => {
+        mostrarVotacionApelacion(data.jugador, data.categoria, data.respuesta);
+    });
+    
+    socket.on("apelacion_aceptada", (data) => {
+        const puntosText = data.puntos_ganados > 0 ? ` (+${data.puntos_ganados} puntos)` : '';
+        mostrarNotificacion(`✅ ¡Apelación aceptada! ${data.jugador} - ${data.categoria}: "${data.respuesta}"${puntosText}`);
+        
+        // Actualizar el botón de apelar para mostrar que fue aceptada
+        const btns = document.querySelectorAll('.btn-apelar-card');
+        btns.forEach(btn => {
+            const btnCategoria = btn.getAttribute('data-categoria');
+            const btnJugador = btn.getAttribute('data-jugador');
+            // Buscar el botón que corresponde a esta categoría y jugador
+            if (btnCategoria === data.categoria && btnJugador === data.jugador) {
+                btn.disabled = true;
+                btn.innerHTML = '✅ Aceptada';
+                btn.style.background = 'var(--success)';
+                btn.style.color = 'white';
+                btn.onclick = null; // Remover el onclick para evitar clics adicionales
+            }
+        });
+        
+        // Actualizar el estado visual de la respuesta en las tarjetas
+        const respuestaCards = document.querySelectorAll('.respuesta-card');
+        respuestaCards.forEach(card => {
+            const categoriaCard = card.getAttribute('data-categoria');
+            const jugadorCard = card.getAttribute('data-jugador');
+            // Buscar la tarjeta que corresponde a esta categoría y jugador
+            if (categoriaCard === data.categoria && jugadorCard === data.jugador) {
+                // Cambiar de inválida a válida
+                card.classList.remove('invalida', 'vacia');
+                card.classList.add('valida');
+                // Actualizar el emoji de estado en el badge de puntos
+                const puntosBadge = card.querySelector('.puntos-badge');
+                if (puntosBadge) {
+                    // Actualizar el texto del badge para mostrar los puntos ganados
+                    const puntosActuales = data.puntos_ganados || 0;
+                    puntosBadge.innerHTML = `✓ +${puntosActuales} pts`;
+                    puntosBadge.classList.remove('cero');
+                    puntosBadge.classList.add('positivo');
+                }
+                // Actualizar el color de borde de la tarjeta
+                card.style.borderLeft = '4px solid var(--success)';
+                card.style.background = 'rgba(16, 185, 129, 0.05)';
+            }
+        });
+        
+        // Actualizar puntuaciones en el modal si está abierto
+        if (data.puntuaciones_totales || data.puntuaciones_ronda) {
+            const rows = document.querySelectorAll('#resultados-puntuaciones-modal table tbody tr');
+            rows.forEach(row => {
+                const nombreCell = row.querySelector('td:first-child strong');
+                if (nombreCell) {
+                    const nombreJugador = nombreCell.textContent.trim();
+                    
+                    // Actualizar puntos de ronda
+                    if (data.puntuaciones_ronda && data.puntuaciones_ronda[nombreJugador] !== undefined) {
+                        const rondaCell = row.querySelector('td:nth-child(2)');
+                        if (rondaCell) {
+                            const puntosRonda = data.puntuaciones_ronda[nombreJugador];
+                            rondaCell.textContent = `+${puntosRonda}`;
+                            rondaCell.style.animation = 'pulse 0.5s ease-in-out';
+                            setTimeout(() => {
+                                rondaCell.style.animation = '';
+                            }, 500);
+                        }
+                    }
+                    
+                    // Actualizar puntos totales
+                    if (data.puntuaciones_totales && data.puntuaciones_totales[nombreJugador] !== undefined) {
+                        const totalCell = row.querySelector('td:last-child');
+                        if (totalCell) {
+                            const oldValue = parseInt(totalCell.textContent) || 0;
+                            const puntosTotal = data.puntuaciones_totales[nombreJugador];
+                            totalCell.textContent = puntosTotal;
+                            
+                            if (oldValue !== puntosTotal) {
+                                totalCell.style.animation = 'pulse 0.5s ease-in-out';
+                                setTimeout(() => {
+                                    totalCell.style.animation = '';
+                                }, 500);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Si el modal de resultados está abierto, recargar los resultados para reflejar los cambios
+        const resultadosModal = document.getElementById('resultados-modal');
+        if (resultadosModal && resultadosModal.style.display !== 'none') {
+            // Forzar recarga de resultados si hay una función disponible
+            // Esto se puede hacer emitiendo un evento o recalculando
+            console.log('Apelación aceptada - puntuaciones actualizadas');
+        }
+    });
+    
+    socket.on("apelacion_rechazada", (data) => {
+        mostrarNotificacion(`❌ Apelación rechazada: ${data.jugador} - ${data.categoria}: "${data.respuesta}"`);
+        
+        // Actualizar el botón de apelar para mostrar que fue rechazada
+        const btns = document.querySelectorAll('.btn-apelar-card');
+        btns.forEach(btn => {
+            const btnCategoria = btn.getAttribute('data-categoria');
+            const btnJugador = btn.getAttribute('data-jugador');
+            // Buscar el botón que corresponde a esta categoría y jugador
+            if (btnCategoria === data.categoria && btnJugador === data.jugador) {
+                btn.disabled = true;
+                btn.innerHTML = '❌ Rechazada';
+                btn.style.background = 'var(--danger)';
+                btn.style.color = 'white';
+                btn.onclick = null; // Remover el onclick para evitar clics adicionales
+            }
+        });
+    });
+    
+    let votacionActual = null;
+    
+    function mostrarVotacion(jugadorVotado, categoria, respuesta) {
+        if (jugadorVotado === jugadorFinal) return;
+        
+        votacionActual = { jugador: jugadorVotado, categoria: categoria };
+        
+        document.getElementById("val-player").textContent = jugadorVotado;
+        document.getElementById("val-category").textContent = categoria;
+        document.getElementById("val-answer").textContent = respuesta;
+        
+        const modal = document.getElementById("validation-modal");
+        modal.classList.add("show");
+    }
+    
+    function votarValidacion(voto) {
+        if (!votacionActual) return;
+        
+        const key = `${votacionActual.jugador}:${votacionActual.categoria}`;
+        socket.emit("votar_validacion", {
+            codigo: codigo,
+            key: key,
+            voto: voto,
+            votante: jugadorFinal
+        });
+        
+        document.getElementById("validation-modal").classList.remove("show");
+        votacionActual = null;
+    }
+    
+    // Hacer la función disponible globalmente para onclick inline
+    window.votarValidacion = votarValidacion;
+
+    let partidaFinalizada = false;
+    
+    socket.on("partida_finalizada", (data) => {
+        partidaFinalizada = true;
+        bastaBtn.disabled = true;
+        bastaBtn.textContent = "🏁 Partida Finalizada";
+        mostrarNotificacion(data.mensaje || "La partida ya ha finalizado");
+    });
+    
+    let bastaCooldownInterval = null;
+    let bastaCooldownSegundos = 0;
+    
+    function iniciarCooldownBasta(segundos) {
+        bastaCooldownSegundos = segundos;
+        bastaBtn.disabled = true;
+        bastaBtn.style.opacity = '0.6';
+        bastaBtn.style.cursor = 'not-allowed';
+        actualizarTextoBastaCooldown();
+        
+        if (bastaCooldownInterval) clearInterval(bastaCooldownInterval);
+        
+        bastaCooldownInterval = setInterval(() => {
+            bastaCooldownSegundos--;
+            
+            if (bastaCooldownSegundos <= 0) {
+                clearInterval(bastaCooldownInterval);
+                bastaCooldownInterval = null;
+                habilitarBotonBasta();
+            } else {
+                actualizarTextoBastaCooldown();
+            }
+        }, 1000);
+    }
+    
+    function actualizarTextoBastaCooldown() {
+        bastaBtn.innerHTML = `<span style="font-size: 0.9em;">⏳ BASTA disponible en ${bastaCooldownSegundos}s</span>`;
+    }
+    
+    function habilitarBotonBasta() {
+        if (!partidaFinalizada) {
+            bastaBtn.disabled = false;
+            bastaBtn.style.opacity = '1';
+            bastaBtn.style.cursor = 'pointer';
+            bastaBtn.textContent = '🛑 ¡BASTA!';
+            
+            mostrarNotificacion('✅ ¡Ahora puedes presionar BASTA!');
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playButton();
+            }
+        }
+    }
+    
+    socket.on("basta_rechazado", (data) => {
+        mostrarNotificacion(data.mensaje);
+        if (data.segundos_restantes > 0) {
+            iniciarCooldownBasta(data.segundos_restantes);
+        }
+        if (typeof soundSystem !== 'undefined') {
+            soundSystem.playError();
+        }
+    });
+    
+    bastaBtn.addEventListener("click", () => {
+        if (bastaBtn.disabled || partidaFinalizada || bastaCooldownSegundos > 0) return;
+        socket.emit("basta_pressed", { codigo: codigo });
+        bastaBtn.disabled = true;
+        bastaBtn.textContent = "⏱️ ¡BASTA! ACTIVADO";
+    });
+
+    function enviarRespuestas() {
+        const respuestas = {};
+        inputs.forEach(input => {
+            const cat = input.getAttribute("data-categoria");
+            respuestas[cat] = input.value.trim();
+        });
+        
+        guardarRespuestas();
+        
+        socket.emit("enviar_respuestas", {
+            codigo: codigo,
+            jugador: jugadorFinal,
+            respuestas: respuestas
+        });
+    }
+
+    function mostrarResultados(data) {
+        try {
+            const bastaBtn = document.getElementById('basta-btn');
+            if (bastaBtn) bastaBtn.style.display = 'none';
+            
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            
+            const resultadosTituloModal = document.getElementById('resultados-titulo-modal');
+            const resultadosPuntuacionesModal = document.getElementById('resultados-puntuaciones-modal');
+            const respuestasTodosContainer = document.getElementById('respuestas-todos-container');
+            const resultadosModal = document.getElementById('resultados-modal');
+            const letraBadge = document.getElementById('resultados-letra-badge');
+            const ganadorBanner = document.getElementById('ganador-banner');
+            
+            const modoEquipos = data.modo_juego === "equipos" && data.equipos && Object.keys(data.equipos).length > 0;
+            
+            if (data.fin_del_juego) {
+                resultadosTituloModal.textContent = "🎉 ¡Juego Finalizado!";
+            } else {
+                resultadosTituloModal.textContent = `Resultados - Ronda ${data.ronda}`;
+            }
+            letraBadge.textContent = `Letra: ${data.letra || '?'}`;
+            
+            let respuestasHTML = `
+                <div class="leyenda-resultados">
+                    <div class="leyenda-item"><div class="leyenda-color" style="background: #f59e0b;"></div> Respuesta única (+100)</div>
+                    <div class="leyenda-item"><div class="leyenda-color" style="background: #6366f1;"></div> Respuesta repetida (+50)</div>
+                    <div class="leyenda-item"><div class="leyenda-color" style="background: #ef4444;"></div> Inválida (0)</div>
+                    <div class="leyenda-item"><div class="leyenda-color" style="background: #cbd5e1;"></div> Vacía (0)</div>
+                </div>
+            `;
+            
+            const categorias = data.categorias || [];
+            const todosJugadores = Object.keys(data.respuestas || {});
+            
+            categorias.forEach(cat => {
+                const catNombre = typeof cat === 'object' ? cat.nombre : cat;
+                const catIcon = typeof cat === 'object' ? cat.icon : '📝';
+                
+                respuestasHTML += `
+                    <div class="categoria-resultado">
+                        <div class="categoria-header">
+                            <span class="icon">${catIcon}</span>
+                            <span class="nombre">${catNombre}</span>
+                        </div>
+                        <div class="respuestas-grid">
+                `;
+                
+                todosJugadores.forEach(nombreJugador => {
+                    const respuesta = data.respuestas[nombreJugador]?.[catNombre] || '';
+                    const puntos = data.puntos_por_respuesta?.[nombreJugador]?.[catNombre] || 0;
+                    const validacionIA = data.validaciones_ia?.[nombreJugador]?.[catNombre];
+                    
+                    let cardClass = '';
+                    let estadoEmoji = '';
+                    let esInvalida = false;
+                    
+                    if (!respuesta || respuesta.trim() === '') {
+                        cardClass = 'vacia';
+                        estadoEmoji = '⬜';
+                    } else if (validacionIA && !validacionIA.validada_ia) {
+                        cardClass = 'invalida';
+                        estadoEmoji = '❌';
+                        esInvalida = true;
+                    } else if (puntos >= 100) {
+                        cardClass = 'unica';
+                        estadoEmoji = '⭐';
+                    } else if (puntos > 0) {
+                        cardClass = 'duplicada valida';
+                        estadoEmoji = '✓';
+                    } else {
+                        cardClass = 'valida';
+                        estadoEmoji = '✓';
+                    }
+                    
+                    const esYo = nombreJugador === jugador;
+                    if (esYo) cardClass += ' es-yo';
+                    
+                    const puedeApelar = esYo && esInvalida && respuesta && !apelacionesUsadas.has(catNombre);
+                    const btnApelarHTML = puedeApelar ? `
+                        <button class="btn-apelar-card" data-categoria="${catNombre}" data-jugador="${nombreJugador}" onclick="solicitarApelacion('${catNombre}', '${respuesta.replace(/'/g, "\\'")}')">
+                            ⚠️ Apelar
+                        </button>
+                    ` : '';
+                    
+                    const razonHTML = (esInvalida && validacionIA?.razon_ia) ? `
+                        <div style="font-size: 0.75em; color: #9ca3af; font-style: italic; margin-top: 4px;">
+                            → ${validacionIA.razon_ia}
+                        </div>
+                    ` : '';
+                    
+                    respuestasHTML += `
+                        <div class="respuesta-card ${cardClass}" data-categoria="${catNombre}" data-jugador="${nombreJugador}">
+                            <div class="jugador-nombre">
+                                ${esYo ? '👤 ' : ''}${nombreJugador}
+                                ${esYo ? '<span style="font-size: 0.8em; background: var(--primary); color: white; padding: 1px 6px; border-radius: 8px;">Tú</span>' : ''}
+                            </div>
+                            <div class="respuesta-texto">
+                                ${respuesta || '<span style="color: #9ca3af; font-style: italic;">Sin respuesta</span>'}
+                            </div>
+                            ${razonHTML}
+                            ${respuesta ? `
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                                    <span class="puntos-badge ${puntos > 0 ? 'positivo' : 'cero'}">
+                                        ${estadoEmoji} ${puntos > 0 ? '+' + puntos : '0'} pts
+                                    </span>
+                                    ${btnApelarHTML}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                respuestasHTML += '</div></div>';
+            });
+            
+            respuestasTodosContainer.innerHTML = respuestasHTML;
+            
+            let puntosHTML = '';
+            
+            if (modoEquipos) {
+                puntosHTML += '<h3 style="margin: 0 0 15px 0; color: var(--dark);">⚽ Puntuaciones por Equipos</h3>';
+                puntosHTML += '<table><thead><tr><th style="background: var(--gradient-3); color: white; border-radius: 8px 0 0 8px;">Equipo</th><th style="background: var(--gradient-3); color: white; text-align: right; border-radius: 0 8px 8px 0;">Total</th></tr></thead><tbody>';
+                
+                const equiposOrdenados = Object.entries(data.puntuaciones_equipos || {}).sort(([, a], [, b]) => b - a);
+                equiposOrdenados.forEach(([nombreEquipo, puntos], index) => {
+                    const color = nombreEquipo.includes('A') ? 'var(--primary)' : 'var(--success)';
+                    const badge = index === 0 ? '<span class="badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">🏆</span>' : '';
+                    puntosHTML += `<tr><td style="border-left: 4px solid ${color};"><strong style="color: ${color};">${nombreEquipo}</strong>${badge}</td><td style="color: ${color}; font-weight: 700; font-size: 1.2em; text-align: right;">${puntos}</td></tr>`;
+                });
+                puntosHTML += '</tbody></table>';
+            }
+            
+            puntosHTML += '<h3 style="margin: 15px 0; color: var(--dark);">👥 Puntuaciones Individuales</h3>';
+            puntosHTML += '<table><thead><tr><th style="background: var(--gradient-1); color: white; border-radius: 8px 0 0 8px;">Jugador</th><th style="background: var(--gradient-1); color: white; text-align: center;">Ronda</th><th style="background: var(--gradient-1); color: white; text-align: right; border-radius: 0 8px 8px 0;">Total</th></tr></thead><tbody>';
+            
+            const jugadoresOrdenados = Object.entries(data.scores_total || {}).sort(([, a], [, b]) => b - a);
+            jugadoresOrdenados.forEach(([nombreJugador, scoreTotal], index) => {
+                const scoreRonda = data.scores_ronda?.[nombreJugador] || 0;
+                const esYo = nombreJugador === jugador;
+                const rowStyle = esYo ? 'background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); box-shadow: 0 0 0 2px var(--primary);' : '';
+                const badge = index === 0 ? '<span class="badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">👑 Líder</span>' : '';
+                const tuBadge = esYo ? '<span class="badge">Tú</span>' : '';
+                
+                puntosHTML += `<tr style="${rowStyle}"><td><strong>${nombreJugador}</strong>${tuBadge}${badge}</td><td style="color: var(--success); font-weight: 700; text-align: center;">+${scoreRonda}</td><td style="color: var(--primary); font-weight: 700; font-size: 1.2em; text-align: right;">${scoreTotal}</td></tr>`;
+            });
+            puntosHTML += '</tbody></table>';
+            
+            resultadosPuntuacionesModal.innerHTML = puntosHTML;
+            
+            if (data.fin_del_juego) {
+                if (data.sin_ganador) {
+                    ganadorBanner.innerHTML = `<div style="padding: 15px 20px; background: linear-gradient(135deg, rgba(156, 163, 175, 0.2) 0%, rgba(107, 114, 128, 0.2) 100%); border: 2px solid #6b7280; border-radius: 12px; text-align: center;"><h3 style="margin: 0; color: #4b5563;">🤝 No hay ganador - Todos tienen 0 puntos</h3></div>`;
+                } else {
+                    const ganador = modoEquipos 
+                        ? Object.entries(data.puntuaciones_equipos || {}).sort(([, a], [, b]) => b - a)[0]?.[0]
+                        : jugadoresOrdenados[0]?.[0];
+                    
+                    // Verificar si el usuario actual es el ganador
+                    const esGanador = ganador === jugadorFinal;
+                    
+                    let mensajeGanador;
+                    if (esGanador) {
+                        mensajeGanador = modoEquipos 
+                            ? `🎉 ¡Felicidades! Tu equipo "${ganador}" es el ganador! 🏆`
+                            : `🎉 ¡Felicidades! Tú eres el ganador! 🏆`;
+                    } else {
+                        mensajeGanador = `🏆 ${modoEquipos ? 'Equipo Ganador' : 'Ganador'}: ${ganador}`;
+                    }
+                    
+                    ganadorBanner.innerHTML = `<div style="padding: 15px 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%); border: 2px solid var(--success); border-radius: 12px; text-align: center;"><h3 style="margin: 0; color: #059669;">${mensajeGanador}</h3></div>`;
+                    crearConfeti();
+                    if (typeof soundSystem !== 'undefined') soundSystem.playVictory();
+                }
+                ganadorBanner.style.display = 'block';
+            }
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.onclick = function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const tab = this.dataset.tab;
+                    document.getElementById('tab-respuestas').style.display = tab === 'respuestas' ? 'block' : 'none';
+                    document.getElementById('tab-puntuaciones').style.display = tab === 'puntuaciones' ? 'block' : 'none';
+                };
+            });
+            
+            const btnContinuarModal = document.getElementById('btn-continuar-modal');
+            if (btnContinuarModal) {
+                if (data.fin_del_juego) {
+                    btnContinuarModal.textContent = '🎉 Ver pantalla final';
+                    btnContinuarModal.onclick = () => {
+                        resultadosModal.style.display = 'none';
+                        document.getElementById('juego-finalizado-msg').style.display = 'flex';
+                    };
+                } else {
+                    btnContinuarModal.textContent = 'Siguiente Ronda ➡️';
+                    btnContinuarModal.onclick = () => {
+                        // Desactivar advertencia antes de redirigir (es una acción intencional)
+                        advertenciaActiva = false;
+                        resultadosModal.style.display = 'none';
+                        window.location.href = `/waiting/${codigo}`;
+                    };
+                }
+            }
+            
+            resultadosModal.style.display = 'block';
+            
+            if (typeof soundSystem !== 'undefined' && !data.fin_del_juego) {
+                soundSystem.playSuccess();
+            }
+            
+        } catch (error) {
+            console.error("❌ Error mostrando resultados:", error);
+            mostrarNotificacion("Error mostrando resultados. Recarga la página.");
+        }
+    }
+    
+    let apelacionActual = null;
+    let colaApelaciones = [];
+    let modalApelacionAbierto = false;
+    
+    function mostrarVotacionApelacion(jugadorApela, categoria, respuesta) {
+        if (jugadorApela === jugador) {
+            mostrarNotificacion("⏳ Esperando votos de los demás jugadores...");
+            return;
+        }
+        
+        const apelacion = { jugador: jugadorApela, categoria: categoria, respuesta: respuesta };
+        
+        if (modalApelacionAbierto) {
+            colaApelaciones.push(apelacion);
+            mostrarNotificacion(`📋 Apelación de ${jugadorApela} en cola (${colaApelaciones.length} pendientes)`);
+            return;
+        }
+        
+        mostrarModalApelacion(apelacion);
+    }
+    
+    function mostrarModalApelacion(apelacion) {
+        apelacionActual = { jugador: apelacion.jugador, categoria: apelacion.categoria };
+        modalApelacionAbierto = true;
+        
+        document.getElementById("apel-player").textContent = apelacion.jugador;
+        document.getElementById("apel-category").textContent = apelacion.categoria;
+        document.getElementById("apel-answer").textContent = apelacion.respuesta;
+        
+        const pendientesInfo = colaApelaciones.length > 0 
+            ? `<br><span style="font-size: 0.85em; color: var(--gray);">📋 ${colaApelaciones.length} apelación(es) más en cola</span>` 
+            : '';
+        document.getElementById("apel-category").innerHTML = apelacion.categoria + pendientesInfo;
+        
+        const modal = document.getElementById("apelacion-modal");
+        modal.classList.add("show");
+    }
+    
+    function mostrarSiguienteApelacion() {
+        if (colaApelaciones.length > 0) {
+            const siguiente = colaApelaciones.shift();
+            setTimeout(() => {
+                mostrarModalApelacion(siguiente);
+            }, 300);
+        } else {
+            modalApelacionAbierto = false;
+        }
+    }
+    
+    function votarApelacion(voto) {
+        if (!apelacionActual) return;
+        
+        const key = `${apelacionActual.jugador}:${apelacionActual.categoria}`;
+        socket.emit("votar_apelacion", {
+            codigo: codigo,
+            key: key,
+            voto: voto,
+            votante: jugadorFinal
+        });
+        
+        document.getElementById("apelacion-modal").classList.remove("show");
+        mostrarNotificacion("✓ Tu voto ha sido registrado");
+        apelacionActual = null;
+        
+        mostrarSiguienteApelacion();
+    }
+    
+    // Hacer la función disponible globalmente para onclick inline
+    window.votarApelacion = votarApelacion;
+
+    function volverASala() {
+        // Desactivar advertencia antes de redirigir (es una acción intencional)
+        advertenciaActiva = false;
+        window.location.href = `/waiting/${codigo}`;
+    }
+    
+    function volverAlMenu() {
+        // Desactivar advertencia antes de redirigir (es una acción intencional)
+        advertenciaActiva = false;
+        localStorage.removeItem("jugador");
+        localStorage.removeItem("codigo");
+        window.location.href = "/";
+    }
+    
+    jugarDeNuevoBtn.addEventListener("click", volverASala);
+    salirBtn.addEventListener("click", volverAlMenu);
+
+    function crearConfeti() {
+        const colores = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confeti = document.createElement('div');
+                confeti.style.cssText = `
+                    position: fixed;
+                    width: 10px;
+                    height: 10px;
+                    background: ${colores[Math.floor(Math.random() * colores.length)]};
+                    left: ${Math.random() * 100}%;
+                    top: -10px;
+                    animation: confetti-fall 3s linear;
+                `;
+                document.body.appendChild(confeti);
+                setTimeout(() => confeti.remove(), 3000);
+            }, i * 30);
+        }
+    }
+
+    // Modo Oscuro
+    const darkModeSwitch = document.getElementById("dark-mode-switch");
+    const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+    
+    // Cargar preferencia guardada
+    const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+    if (darkModeEnabled) {
+        document.body.classList.add("dark-mode");
+        darkModeSwitch.checked = true;
+        darkModeIcon.textContent = "☀️";
+    }
+    
+    // Toggle del modo oscuro
+    darkModeSwitch.addEventListener("change", (e) => {
+        if (e.target.checked) {
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("darkMode", "true");
+            darkModeIcon.textContent = "☀️";
+        } else {
+            document.body.classList.remove("dark-mode");
+            localStorage.setItem("darkMode", "false");
+            darkModeIcon.textContent = "🌙";
+        }
+    });
+    
+    // Advertencia al intentar salir de la página
+    let advertenciaActiva = true;
+    window.addEventListener("beforeunload", function(e) {
+        if (advertenciaActiva) {
+            // Verificar si hay una ronda en curso o respuestas guardadas
+            const respuestasGuardadas = localStorage.getItem(`respuestas_${codigo}`);
+            const rondaEnCurso = document.getElementById("timer") && document.getElementById("timer").textContent !== "0";
+            
+            if (respuestasGuardadas || rondaEnCurso) {
+                e.preventDefault();
+                e.returnValue = "¿Estás seguro de que quieres salir? Se perderá tu progreso en la ronda actual.";
+                return e.returnValue;
+            }
+        }
+    });
+    
+    // Desactivar advertencia cuando el juego termine o se salga correctamente
+    socket.on("round_results", function(data) {
+        if (data.fin_del_juego) {
+            advertenciaActiva = false;
+        }
+    });
+        })(jugadorRecuperado, jugador, codigo); // Cerrar función inmediata y pasar parámetros
+    } // Cerrar else
+</script>
+</body>
+</html>

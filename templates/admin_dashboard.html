@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Basta Web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"></script>
+    <style>
+        body {
+            padding: 20px;
+            align-items: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+
+    <!-- Modal de Respuestas -->
+    <div class="modal-overlay" id="respuestas-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>📋 Respuestas de Jugadores - Sala <span id="respuestas-sala-codigo"></span></h2>
+                <p class="subtitle">Letra: <span id="respuestas-letra">?</span> | Ronda: <span id="respuestas-ronda">1</span></p>
+            </div>
+            
+            <div class="panel-body" id="respuestas-list" style="max-height: 400px; overflow-y: auto;">
+                <div class="empty-state">
+                    <div class="icon">📋</div>
+                    <p>Cargando respuestas...</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-join" onclick="cerrarRespuestasModal()" style="margin: 0; flex: 1;">Cerrar</button>
+                <button class="btn btn-host" onclick="cargarRespuestas()" style="margin: 0; flex: 1;">🔄 Actualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Control de Sala -->
+    <div class="modal-overlay" id="control-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Controlar Sala <span id="modal-sala-codigo"></span></h2>
+                <p class="subtitle">Administra las funcionalidades de esta sala</p>
+            </div>
+            
+            <div class="control-row">
+                <div class="info">
+                    <span class="title">⚡ Power-Ups</span>
+                    <span class="desc">Habilidades especiales en el juego</span>
+                </div>
+                <button class="toggle-button active" data-feature="powerups_habilitados" id="btn-powerups">
+                    ✓ Activado
+                </button>
+            </div>
+            
+            <div class="control-row">
+                <div class="info">
+                    <span class="title">💬 Chat en Tiempo Real</span>
+                    <span class="desc">Comunicación entre jugadores</span>
+                </div>
+                <button class="toggle-button active" data-feature="chat_habilitado" id="btn-chat">
+                    ✓ Activado
+                </button>
+            </div>
+            
+            <div class="control-row">
+                <div class="info">
+                    <span class="title">🔊 Efectos de Sonido</span>
+                    <span class="desc">Sonidos durante el juego</span>
+                </div>
+                <button class="toggle-button active" data-feature="sonidos_habilitados" id="btn-sonidos">
+                    ✓ Activado
+                </button>
+            </div>
+            
+            <div class="control-row">
+                <div class="info">
+                    <span class="title">✅ Sistema de Validación</span>
+                    <span class="desc">Votación para respuestas dudosas</span>
+                </div>
+                <button class="toggle-button active" data-feature="validacion_activa" id="btn-validacion">
+                    ✓ Activado
+                </button>
+            </div>
+            
+            <div class="control-row" id="control-pausa" style="display: none;">
+                <div class="info">
+                    <span class="title">⏸️ Pausar Ronda</span>
+                    <span class="desc">Pausar/despausar la ronda en curso.</span>
+                </div>
+                <button class="toggle-button inactive" id="btn-pausar" onclick="togglePausa()">
+                    ⏸️ Pausar
+                </button>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-join" onclick="cerrarModal()" style="margin: 0; flex: 1;">Cerrar</button>
+                <button class="btn btn-host" onclick="verChatModal()" style="margin: 0; flex: 1;">💬 Ver Chat</button>
+                <button class="btn btn-admin" onclick="verRespuestasModal()" style="margin: 0; flex: 1;">📋 Ver Respuestas</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <span style="font-size: 1.5em; margin-right: 10px;">🔐</span>
+                <h1 style="display: inline;">Panel de Administración</h1>
+            </div>
+            <div class="actions">
+                <button class="btn btn-join" onclick="location.reload()" style="margin: 0;">🔄 Actualizar</button>
+                <button class="btn btn-danger" onclick="cerrarSesion()" style="margin: 0;">🚪 Salir</button>
+            </div>
+        </div>
+        
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">🏠</div>
+                <div class="value" id="stat-salas">0</div>
+                <div class="label">Total Salas</div>
+            </div>
+            
+            <div class="stat-card green">
+                <div class="icon">🎮</div>
+                <div class="value" id="stat-activas">0</div>
+                <div class="label">Salas Activas</div>
+            </div>
+            
+            <div class="stat-card blue">
+                <div class="icon">👥</div>
+                <div class="value" id="stat-jugadores">0</div>
+                <div class="label">Jugadores Online</div>
+            </div>
+            
+            <div class="stat-card orange">
+                <div class="icon">💬</div>
+                <div class="value" id="stat-mensajes">0</div>
+                <div class="label">Mensajes Chat</div>
+            </div>
+        </div>
+        
+        <!-- Contenido Principal -->
+        <div class="content-grid">
+            <!-- Salas Activas -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>🏠</span>
+                    Salas del Sistema
+                </div>
+                <div class="panel-body" id="salas-list">
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>Cargando salas...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Monitor de Chat -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>💬</span>
+                    Monitor de Chat
+                    <span id="selected-room" style="margin-left: auto; font-weight: 400; font-size: 0.9em; opacity: 0.9;"></span>
+                </div>
+                <div class="panel-body" id="chat-monitor">
+                    <div class="empty-state">
+                        <div class="icon">💬</div>
+                        <p>Selecciona una sala para ver los mensajes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de Logs -->
+        <div class="panel" style="margin-top: 20px;">
+            <div class="panel-header" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+                <span>📋</span>
+                Logs del Sistema en Tiempo Real
+                <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+                    <span id="log-count" style="font-weight: 400; font-size: 0.85em; opacity: 0.8;">0 logs</span>
+                    <button onclick="limpiarLogs()" style="padding: 5px 12px; background: rgba(255,255,255,0.2); border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 0.85em;">🗑️ Limpiar</button>
+                    <button onclick="toggleAutoScroll()" id="btn-autoscroll" style="padding: 5px 12px; background: #10b981; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 0.85em;">📜 Auto-scroll: ON</button>
+                </div>
+            </div>
+            <div id="logs-container" style="height: 350px; overflow-y: auto; background: #0f172a; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85em;">
+                <div style="color: #64748b; padding: 5px 0;">
+                    [Sistema] Esperando logs...
+                </div>
+            </div>
+            <div style="padding: 12px 15px; background: #1e293b; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <span style="color: #94a3b8; font-size: 0.85em; font-weight: 600;">Filtros:</span>
+                <label style="display: flex; align-items: center; gap: 5px; color: #10b981; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-join" checked onchange="aplicarFiltros()"> 👥 Uniones
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; color: #3b82f6; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-game" checked onchange="aplicarFiltros()"> 🎮 Juego
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; color: #f59e0b; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-apelacion" checked onchange="aplicarFiltros()"> ⚠️ Apelaciones
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; color: #8b5cf6; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-chat" checked onchange="aplicarFiltros()"> 💬 Chat
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; color: #ef4444; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-error" checked onchange="aplicarFiltros()"> ❌ Errores
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io("http://127.0.0.1:8081");
+        let currentRoom = null;
+        let updateInterval = null;
+        let currentSalaData = null;
+        
+        async function cargarEstadisticas() {
+            try {
+                const res = await fetch('/api/admin/estadisticas');
+                const data = await res.json();
+                
+                if (data.ok) {
+                    document.getElementById('stat-salas').textContent = data.estadisticas.total_salas;
+                    document.getElementById('stat-activas').textContent = data.estadisticas.salas_activas;
+                    document.getElementById('stat-jugadores').textContent = data.estadisticas.total_jugadores;
+                    document.getElementById('stat-mensajes').textContent = data.estadisticas.total_mensajes;
+                }
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+            }
+        }
+        
+        async function cargarSalas() {
+            try {
+                const res = await fetch('/api/admin/salas');
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const salasList = document.getElementById('salas-list');
+                    
+                    if (data.salas.length === 0) {
+                        salasList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon">🏠</div>
+                                <p>No hay salas activas</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    salasList.innerHTML = '';
+                    data.salas.forEach(sala => {
+                        let estadoBadge = '';
+                        if (sala.en_curso) {
+                            estadoBadge = sala.pausada ? 
+                                '<span class="badge orange">⏸️ Pausada</span>' : 
+                                '<span class="badge green">🎮 En juego</span>';
+                        } else {
+                            estadoBadge = '<span class="badge orange">⏸️ Esperando</span>';
+                        }
+                        
+                        const div = document.createElement('div');
+                        div.className = `sala-item ${sala.en_curso ? 'activa' : ''}`;
+                        div.innerHTML = `
+                            <div class="codigo">${sala.codigo}</div>
+                            <div class="info">
+                                <span>👑 ${sala.anfitrion}</span>
+                                <span>👥 ${sala.jugadores.length} jugadores</span>
+                                <span>🎯 ${sala.modo_juego}</span>
+                                <span>📝 Ronda ${sala.ronda_actual}/${sala.total_rondas}</span>
+                                <span>💬 ${sala.num_mensajes} msgs</span>
+                            </div>
+                            <div style="margin-top: 8px;">${estadoBadge}</div>
+                            <div style="margin-top: 8px; font-size: 0.85em; color: var(--gray);">
+                                <span>Click: ver chat • Doble-click: controlar</span>
+                            </div>
+                        `;
+                        div.onclick = () => verChat(sala.codigo);
+                        div.ondblclick = () => abrirControlSala(sala);
+                        salasList.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar salas:', error);
+            }
+        }
+        
+        async function verChat(codigo) {
+            currentRoom = codigo;
+            document.getElementById('selected-room').textContent = `Sala: ${codigo}`;
+            
+            try {
+                const res = await fetch(`/api/admin/sala/${codigo}/chat`);
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const chatMonitor = document.getElementById('chat-monitor');
+                    
+                    if (data.mensajes.length === 0) {
+                        chatMonitor.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon">💬</div>
+                                <p>No hay mensajes en esta sala</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    chatMonitor.innerHTML = '';
+                    data.mensajes.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = 'chat-message';
+                        div.innerHTML = `
+                            <div class="meta" style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85em;">
+                                <span class="author" style="font-weight: 700; color: var(--primary);">${msg.jugador}</span>
+                                <span style="color: var(--gray);">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                            <div style="color: var(--dark);">${msg.mensaje}</div>
+                        `;
+                        chatMonitor.appendChild(div);
+                    });
+                    
+                    chatMonitor.scrollTop = chatMonitor.scrollHeight;
+                }
+            } catch (error) {
+                console.error('Error al cargar chat:', error);
+            }
+        }
+        
+        socket.on('nuevo_mensaje_chat', (data) => {
+            if (currentRoom) {
+                verChat(currentRoom);
+            }
+            cargarEstadisticas();
+        });
+        
+        socket.on('player_joined', () => {
+            cargarSalas();
+            cargarEstadisticas();
+        });
+        
+        socket.on('start_game', () => {
+            cargarSalas();
+            cargarEstadisticas();
+        });
+        
+        async function abrirControlSala(sala) {
+            currentSalaData = sala;
+            document.getElementById('modal-sala-codigo').textContent = sala.codigo;
+            
+            const controlPausa = document.getElementById('control-pausa');
+            const btnPausar = document.getElementById('btn-pausar');
+            if (sala.en_curso) {
+                controlPausa.style.display = 'flex';
+                try {
+                    const res = await fetch(`/api/admin/sala/${sala.codigo}`);
+                    const data = await res.json();
+                    if (data.ok) {
+                        const pausada = data.sala.pausada || false;
+                        if (pausada) {
+                            btnPausar.classList.remove('inactive');
+                            btnPausar.classList.add('active');
+                            btnPausar.textContent = '▶️ Reanudar';
+                        } else {
+                            btnPausar.classList.remove('active');
+                            btnPausar.classList.add('inactive');
+                            btnPausar.textContent = '⏸️ Pausar';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            } else {
+                controlPausa.style.display = 'none';
+            }
+            
+            try {
+                const res = await fetch(`/api/admin/sala/${sala.codigo}`);
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const config = data.sala;
+                    actualizarBotonToggle('btn-powerups', config.powerups_habilitados);
+                    actualizarBotonToggle('btn-chat', config.chat_habilitado);
+                    actualizarBotonToggle('btn-sonidos', config.sonidos_habilitados);
+                    actualizarBotonToggle('btn-validacion', config.validacion_activa);
+                }
+            } catch (error) {
+                console.error('Error al cargar configuración:', error);
+            }
+            
+            document.getElementById('control-modal').classList.add('show');
+        }
+        
+        async function togglePausa() {
+            if (!currentSalaData) return;
+            
+            try {
+                const res = await fetch(`/api/admin/sala/${currentSalaData.codigo}/pausar`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const btnPausar = document.getElementById('btn-pausar');
+                    if (data.pausada) {
+                        btnPausar.classList.remove('inactive');
+                        btnPausar.classList.add('active');
+                        btnPausar.textContent = '▶️ Reanudar';
+                    } else {
+                        btnPausar.classList.remove('active');
+                        btnPausar.classList.add('inactive');
+                        btnPausar.textContent = '⏸️ Pausar';
+                    }
+                    mostrarNotificacion(data.message);
+                    currentSalaData.pausada = data.pausada;
+                    cargarSalas();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            }
+        }
+        
+        async function verRespuestasModal() {
+            if (!currentSalaData) return;
+            
+            document.getElementById('respuestas-sala-codigo').textContent = currentSalaData.codigo;
+            document.getElementById('respuestas-modal').classList.add('show');
+            await cargarRespuestas();
+        }
+        
+        async function cargarRespuestas() {
+            if (!currentSalaData) return;
+            
+            try {
+                const resSala = await fetch(`/api/admin/sala/${currentSalaData.codigo}`);
+                const dataSala = await resSala.json();
+                const estaPausada = dataSala.ok && dataSala.sala.pausada;
+                
+                const res = await fetch(`/api/admin/sala/${currentSalaData.codigo}/respuestas`);
+                const data = await res.json();
+                
+                if (data.ok) {
+                    document.getElementById('respuestas-letra').textContent = data.letra;
+                    document.getElementById('respuestas-ronda').textContent = data.ronda;
+                    
+                    const respuestasList = document.getElementById('respuestas-list');
+                    
+                    if (Object.keys(data.respuestas).length === 0 && data.jugadores_sin_respuestas.length === 0) {
+                        respuestasList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon">📋</div>
+                                <p>No hay respuestas aún</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    let html = '';
+                    
+                    for (const [jugador, info] of Object.entries(data.respuestas)) {
+                        html += `
+                            <div style="padding: 15px; margin: 10px 0; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%); border-radius: var(--radius-md); border-left: 4px solid var(--success);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div>
+                                        <strong style="color: var(--dark); font-size: 1.1em;">${jugador}</strong>
+                                        <span class="badge" style="background: #6b7280;">ID: ${info.player_id}</span>
+                                    </div>
+                                    ${currentSalaData.en_curso && estaPausada ? `
+                                        <button class="btn btn-danger" onclick="expulsarJugador('${info.player_id}')" style="padding: 6px 12px; font-size: 0.85em; margin: 0;">
+                                            🚫 Expulsar
+                                        </button>
+                                    ` : ''}
+                                </div>
+                                <div style="display: grid; gap: 8px;">
+                        `;
+                        
+                        for (const [categoria, respuesta] of Object.entries(info.respuestas)) {
+                            html += `
+                                <div style="padding: 8px 12px; background: white; border-radius: var(--radius-sm);">
+                                    <strong style="color: var(--primary); font-size: 0.9em;">${categoria}:</strong>
+                                    <span style="color: var(--dark); margin-left: 8px;">${respuesta || '(vacío)'}</span>
+                                </div>
+                            `;
+                        }
+                        
+                        html += `</div></div>`;
+                    }
+                    
+                    if (data.jugadores_sin_respuestas.length > 0) {
+                        html += `
+                            <div style="padding: 15px; margin: 10px 0; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%); border-radius: var(--radius-md); border-left: 4px solid var(--warning);">
+                                <strong style="color: var(--dark);">Jugadores sin respuestas:</strong>
+                                <div style="margin-top: 8px;">
+                        `;
+                        for (const jugador of data.jugadores_sin_respuestas) {
+                            html += `<span style="display: inline-block; padding: 5px 12px; background: white; border-radius: 8px; margin: 4px; font-size: 0.9em;">${jugador}</span>`;
+                        }
+                        html += `</div></div>`;
+                    }
+                    
+                    respuestasList.innerHTML = html;
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            }
+        }
+        
+        async function expulsarJugador(playerId) {
+            if (!currentSalaData) return;
+            if (!confirm('¿Estás seguro de expulsar a este jugador?')) return;
+            
+            try {
+                const res = await fetch(`/api/admin/sala/${currentSalaData.codigo}/expulsar`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ player_id: playerId })
+                });
+                
+                const data = await res.json();
+                
+                if (data.ok) {
+                    mostrarNotificacion(data.message);
+                    cargarRespuestas();
+                    cargarSalas();
+                    cargarEstadisticas();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            }
+        }
+        
+        function cerrarRespuestasModal() {
+            document.getElementById('respuestas-modal').classList.remove('show');
+        }
+        
+        function actualizarBotonToggle(btnId, estado) {
+            const btn = document.getElementById(btnId);
+            if (estado) {
+                btn.classList.remove('inactive');
+                btn.classList.add('active');
+                btn.textContent = '✓ Activado';
+            } else {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+                btn.textContent = '✗ Desactivado';
+            }
+        }
+        
+        document.querySelectorAll('.toggle-button').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                if (!currentSalaData) return;
+                
+                const feature = this.dataset.feature;
+                const isActive = this.classList.contains('active');
+                const newState = !isActive;
+                
+                try {
+                    const res = await fetch('/api/admin/cambiar_config', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            codigo: currentSalaData.codigo,
+                            feature: feature,
+                            value: newState
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.ok) {
+                        actualizarBotonToggle(this.id, newState);
+                        mostrarNotificacion(`✓ ${feature} ${newState ? 'activado' : 'desactivado'}`);
+                    } else {
+                        alert('Error al cambiar configuración');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error de conexión');
+                }
+            });
+        });
+        
+        function cerrarModal() {
+            document.getElementById('control-modal').classList.remove('show');
+            currentSalaData = null;
+        }
+        
+        function verChatModal() {
+            if (currentSalaData) {
+                cerrarModal();
+                verChat(currentSalaData.codigo);
+            }
+        }
+        
+        function mostrarNotificacion(mensaje) {
+            const notif = document.createElement('div');
+            notif.textContent = mensaje;
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: var(--gradient-4);
+                color: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                z-index: 10001;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+        
+        document.getElementById('control-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
+        
+        document.getElementById('respuestas-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarRespuestasModal();
+            }
+        });
+        
+        function cerrarSesion() {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                window.location.href = '/admin/logout';
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            cargarEstadisticas();
+            cargarSalas();
+            
+            updateInterval = setInterval(() => {
+                cargarEstadisticas();
+                cargarSalas();
+                if (currentRoom) {
+                    verChat(currentRoom);
+                }
+            }, 5000);
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+        
+        // Sistema de Logs
+        let allLogs = [];
+        let autoScroll = true;
+        const MAX_LOGS = 500;
+        
+        socket.emit('admin_join_logs');
+        
+        socket.on('admin_log', (data) => {
+            agregarLog(data);
+        });
+        
+        function agregarLog(data) {
+            const timestamp = data.timestamp || new Date().toLocaleTimeString();
+            const tipo = data.tipo || 'info';
+            const mensaje = data.mensaje || '';
+            const sala = data.sala || '';
+            
+            allLogs.push({ timestamp, tipo, mensaje, sala });
+            
+            if (allLogs.length > MAX_LOGS) {
+                allLogs = allLogs.slice(-MAX_LOGS);
+            }
+            
+            renderizarLogs();
+        }
+        
+        function renderizarLogs() {
+            const container = document.getElementById('logs-container');
+            const filtroJoin = document.getElementById('filter-join').checked;
+            const filtroGame = document.getElementById('filter-game').checked;
+            const filtroApelacion = document.getElementById('filter-apelacion').checked;
+            const filtroChat = document.getElementById('filter-chat').checked;
+            const filtroError = document.getElementById('filter-error').checked;
+            
+            const logsFiltrados = allLogs.filter(log => {
+                if (log.tipo === 'join' && !filtroJoin) return false;
+                if (log.tipo === 'game' && !filtroGame) return false;
+                if (log.tipo === 'apelacion' && !filtroApelacion) return false;
+                if (log.tipo === 'chat' && !filtroChat) return false;
+                if (log.tipo === 'error' && !filtroError) return false;
+                return true;
+            });
+            
+            let html = '';
+            logsFiltrados.forEach(log => {
+                const color = getLogColor(log.tipo);
+                const icon = getLogIcon(log.tipo);
+                const salaTag = log.sala ? `<span style="color: #94a3b8; background: #334155; padding: 1px 6px; border-radius: 4px; font-size: 0.85em; margin-right: 8px;">${log.sala}</span>` : '';
+                
+                html += `<div style="color: ${color}; padding: 6px 0; border-bottom: 1px solid #1e293b; display: flex; align-items: flex-start; gap: 8px;">
+                    <span style="color: #64748b; flex-shrink: 0;">[${log.timestamp}]</span>
+                    <span style="flex-shrink: 0;">${icon}</span>
+                    ${salaTag}
+                    <span style="word-break: break-word;">${log.mensaje}</span>
+                </div>`;
+            });
+            
+            if (html === '') {
+                html = '<div style="color: #64748b; padding: 20px; text-align: center;">No hay logs que coincidan con los filtros</div>';
+            }
+            
+            container.innerHTML = html;
+            
+            document.getElementById('log-count').textContent = `${logsFiltrados.length}/${allLogs.length} logs`;
+            
+            if (autoScroll) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        
+        function getLogColor(tipo) {
+            switch(tipo) {
+                case 'join': return '#10b981';
+                case 'game': return '#3b82f6';
+                case 'apelacion': return '#f59e0b';
+                case 'chat': return '#8b5cf6';
+                case 'error': return '#ef4444';
+                case 'success': return '#22c55e';
+                default: return '#e2e8f0';
+            }
+        }
+        
+        function getLogIcon(tipo) {
+            switch(tipo) {
+                case 'join': return '👥';
+                case 'game': return '🎮';
+                case 'apelacion': return '⚠️';
+                case 'chat': return '💬';
+                case 'error': return '❌';
+                case 'success': return '✅';
+                default: return '📋';
+            }
+        }
+        
+        function limpiarLogs() {
+            allLogs = [];
+            renderizarLogs();
+            mostrarNotificacion('🗑️ Logs limpiados');
+        }
+        
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('btn-autoscroll');
+            if (autoScroll) {
+                btn.style.background = '#10b981';
+                btn.textContent = '📜 Auto-scroll: ON';
+            } else {
+                btn.style.background = '#64748b';
+                btn.textContent = '📜 Auto-scroll: OFF';
+            }
+        }
+        
+        function aplicarFiltros() {
+            renderizarLogs();
+        }
+
+        // Modo Oscuro
+        const darkModeSwitch = document.getElementById("dark-mode-switch");
+        const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+        
+        // Cargar preferencia guardada
+        const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+        if (darkModeEnabled) {
+            document.body.classList.add("dark-mode");
+            darkModeSwitch.checked = true;
+            darkModeIcon.textContent = "☀️";
+        }
+        
+        // Toggle del modo oscuro
+        darkModeSwitch.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                document.body.classList.add("dark-mode");
+                localStorage.setItem("darkMode", "true");
+                darkModeIcon.textContent = "☀️";
+            } else {
+                document.body.classList.remove("dark-mode");
+                localStorage.setItem("darkMode", "false");
+                darkModeIcon.textContent = "🌙";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='hide_routes.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Basta Web - ¡Juega Ahora!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Aplicar modo oscuro inmediatamente para evitar flash
+        (function() {
+            const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+            if (darkModeEnabled) {
+                document.documentElement.classList.add("dark-mode");
+                document.body.classList.add("dark-mode");
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Switch de Modo Oscuro -->
+    <div class="dark-mode-toggle">
+        <span class="dark-mode-toggle-icon">🌙</span>
+        <label class="dark-mode-toggle-label" for="dark-mode-switch">Modo Oscuro</label>
+        <label class="dark-mode-switch">
+            <input type="checkbox" id="dark-mode-switch">
+            <span class="dark-mode-slider"></span>
+        </label>
+    </div>
+
+    <main class="main-container">
+        <section class="card">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='BastaTec.png') }}" 
+                     alt="Basta Tec Logo"
+                     onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block';">
+            </div>
+            
+            <h1 id="fallback-title" class="title" style="display: none;">¡BASTA!</h1>
+            
+            <p class="subtitle">Juego de palabras en tiempo real</p>
+            
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <span class="feature-icon">👥</span>
+                    <strong>Multijugador</strong> - Juega con amigos en tiempo real
+                </li>
+                <li class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <strong>Rápido y Divertido</strong> - Partidas dinámicas
+                </li>
+                <li class="feature-item">
+                    <span class="feature-icon">🎯</span>
+                    <strong>Competitivo</strong> - Demuestra tu vocabulario
+                </li>
+            </ul>
+            
+            <div class="btn-container">
+                <a href="/create" class="btn btn-host">
+                    <span class="btn-icon">👑</span>
+                    Crear Sala Nueva
+                </a>
+                
+                <a href="/join" class="btn btn-join">
+                    <span class="btn-icon">🎮</span>
+                    Unirse a una Sala
+                </a>
+                
+                <a href="/admin" class="btn btn-admin">
+                    <span class="btn-icon">🔐</span>
+                    Panel Admin
+                </a>
+            </div>
+            
+            <footer>
+                Hecho con 💜 para jugadores de palabras
+            </footer>
+        </section>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('.card');
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+            }, 100);
+        });
+
+        // Modo Oscuro
+        const darkModeSwitch = document.getElementById("dark-mode-switch");
+        const darkModeIcon = document.querySelector(".dark-mode-toggle-icon");
+        
+        // Cargar preferencia guardada
+        const darkModeEnabled = localStorage.getItem("darkMode") === "true";
+        if (darkModeEnabled) {
+            document.body.classList.add("dark-mode");
+            darkModeSwitch.checked = true;
+            darkModeIcon.textContent = "☀️";
+        }
+        
+        // Toggle del modo oscuro
+        darkModeSwitch.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                document.body.classList.add("dark-mode");
+                localStorage.setItem("darkMode", "true");
+                darkModeIcon.textContent = "☀️";
+            } else {
+                document.body.classList.remove("dark-mode");
+                localStorage.setItem("darkMode", "false");
+                darkModeIcon.textContent = "🌙";
+            }
+        });
+    </script>
+</body>
+</html>
