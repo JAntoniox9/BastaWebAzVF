@@ -2,7 +2,7 @@ from gevent import monkey
 monkey.patch_all()
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_socketio import SocketIO, join_room, emit
-import random, string, json, os, threading, time, hashlib, hmac, base64
+import random, string, json, os, threading, time, hashlib, hmac, base64, re, unicodedata
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -514,376 +514,634 @@ def crear_equipos_automaticamente(sala):
     
     print(f"✅ Equipos creados: Equipo A: {equipo_a}, Equipo B: {equipo_b}")
 
-# ==========================================================
-# GENERAR PROMPT MEJORADO PARA VALIDACIÓN
-# ==========================================================
+# ========================================================== 
+# GENERAR PROMPT MEJORADO PARA VALIDACIÓN 
+# ========================================================== 
 def generar_prompt_validacion(respuesta, categoria, letra):
     """
-    Genera un prompt mejorado para validación IA
-    con reglas específicas según la categoría
+    Genera un prompt mejorado para validación IA con reglas específicas según la categoría
     """
-    # Obtener ejemplos específicos según la categoría
-    ejemplos_categoria = ""
-    reglas_especiales = ""
-    ejemplos_incorrectos = ""
-    
     categoria_lower = categoria.lower()
     
-    # Formatear la pregunta de manera más directa según el tipo de categoría
-    articulo = "un"
-    if any(palabra in categoria_lower for palabra in ["serie", "película", "pelicula", "marca", "fruta", "verdura", "comida", "canción", "profesión", "universidad"]):
-        articulo = "una"
+    # Determinar artículo
+    categorias_femeninas = [
+        "fruta", "profesión", "canción", "marca", "comida", "película", 
+        "serie", "universidad", "empresa", "ciudad"
+    ]
+    articulo = "una" if any(palabra in categoria_lower for palabra in categorias_femeninas) else "un"
     
-    # Pregunta directa y simple - MUY DIRECTA
-    pregunta_directa = f'¿"{respuesta}" es {articulo} {categoria}?'
+    # ========================================================== 
+    # DEFINICIONES ESTRICTAS POR CATEGORÍA
+    # ========================================================== 
+    definiciones = {
+        # BÁSICAS
+        "nombre": {
+            "definicion": "nombre propio de PERSONA (nombre de pila) real y usado en algún idioma",
+            "ejemplos_si": ["Roberto", "María", "Alejandro", "Sofía", "Ahmed", "Yuki"],
+            "ejemplos_no": [
+                ("Radio", "es un objeto, no nombre de persona"),
+                ("Río", "es un cuerpo de agua"),
+                ("Rápido", "es un adjetivo"),
+                ("Rugido", "es un sonido"),
+            ],
+            "requiere_existencia": False,
+            "reglas_extra": "Debe ser un nombre que personas reales usen.  NO aceptar objetos, lugares, adjetivos o verbos."
+        },
+        "animal": {
+            "definicion": "animal real que existe o existió (incluye extintos como dinosaurios)",
+            "ejemplos_si": ["Rinoceronte", "Rana", "Rata", "Tiburón", "Tiranosaurio"],
+            "ejemplos_no": [
+                ("Río", "es un cuerpo de agua"),
+                ("Reloj", "es un objeto"),
+                ("Rascacielos", "es un edificio"),
+                ("Dragón", "es un animal mitológico/ficticio"),
+                ("Unicornio", "es un animal ficticio"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser un animal REAL.  NO aceptar animales mitológicos o ficticios (dragones, unicornios, etc.) a menos que existan en la realidad."
+        },
+        "país o ciudad": {
+            "definicion": "país reconocido internacionalmente O ciudad real que existe",
+            "ejemplos_si": ["Brasil", "Roma", "Tokio", "Argentina", "Rabat"],
+            "ejemplos_no": [
+                ("Manzana", "es una fruta"),
+                ("Río", "solo es un cuerpo de agua, 'Río de Janeiro' sí sería válido"),
+                ("Atlantida", "es una ciudad mitológica"),
+                ("NONDON", "mal escrito, sería 'Londres'"),
+                ("Perro", "es un animal"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser un lugar REAL y existente.  Nombres deben estar correctamente escritos."
+        },
+        "fruta": {
+            "definicion": "fruta real comestible que existe botánicamente",
+            "ejemplos_si": ["Manzana", "Rambután", "Frambuesa", "Toronja", "Tamarindo"],
+            "ejemplos_no": [
+                ("Rascacielos", "es un edificio"),
+                ("Brasil", "es un país"),
+                ("Rosa", "es una flor, no una fruta"),
+                ("Tomate", "botánicamente es fruta pero se acepta"),
+                ("Rugido", "es un sonido"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser una fruta REAL.  El tomate técnicamente es fruta y se acepta."
+        },
+        "objeto": {
+            "definicion": "objeto físico inanimado, fabricado o creado por humanos",
+            "ejemplos_si": ["Reloj", "Radio", "Televisor", "Silla", "Teléfono", "Raqueta"],
+            "ejemplos_no": [
+                ("Rinoceronte", "es un animal"),
+                ("Río", "es un elemento natural, no fabricado"),
+                ("Rugido", "es un sonido, no un objeto físico"),
+                ("Nariz", "es una parte del cuerpo"),
+                ("Árbol", "es un ser vivo natural"),
+            ],
+            "requiere_existencia": False,
+            "reglas_extra": "Debe ser algo FABRICADO/CREADO por humanos. NO partes del cuerpo, animales, plantas o elementos naturales."
+        },
+        "color": {
+            "definicion": "color real y reconocible (incluye tonalidades)",
+            "ejemplos_si": ["Rojo", "Rosa", "Rubí", "Turquesa", "Terracota", "Índigo"],
+            "ejemplos_no": [
+                ("Rugido", "es un sonido"),
+                ("Río", "es un cuerpo de agua"),
+                ("Rápido", "es un adjetivo de velocidad"),
+                ("Reloj", "es un objeto"),
+            ],
+            "requiere_existencia": False,
+            "reglas_extra": "Debe ser un color reconocido. Se aceptan tonalidades y colores menos comunes si son reales."
+        },
+        
+        # INTERMEDIAS
+        "profesión": {
+            "definicion": "profesión, oficio o trabajo real que personas ejercen",
+            "ejemplos_si": ["Médico", "Profesor", "Piloto", "Taxista", "Tornero", "Reportero"],
+            "ejemplos_no": [
+                ("Mago", "si es de fantasía no, si es ilusionista sí"),
+                ("Dragón", "es un animal ficticio"),
+                ("Teléfono", "es un objeto"),
+                ("Corredor", "depende del contexto - si es atleta sí"),
+            ],
+            "requiere_existencia": False,
+            "reglas_extra": "Debe ser un trabajo REAL que personas ejercen en la vida real."
+        },
+        "canción": {
+            "definicion": "canción real que existe, con título oficial correcto",
+            "ejemplos_si": ["Thriller", "Bohemian Rhapsody", "Despacito", "Toxic", "Titanium"],
+            "ejemplos_no": [
+                ("La Canción Bonita", "título genérico, verificar si existe"),
+                ("Música Alegre", "no es un título real"),
+                ("Song 12345", "inventado"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser una canción REAL y conocida. El título debe ser el oficial o muy reconocible."
+        },
+        "artista musical": {
+            "definicion": "cantante, banda o grupo musical REAL y verificable",
+            "ejemplos_si": ["Tito Doble P", "Taylor Swift", "The Beatles", "Thalía", "Timbiriche", "Twenty One Pilots"],
+            "ejemplos_no": [
+                ("Los Musicales", "banda inventada"),
+                ("DJ Fantasma", "nombre inventado"),
+                ("The Super Band", "no existe"),
+                ("Cantante Famoso", "no es un nombre de artista"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": """CRÍTICO: El artista DEBE existir realmente. 
+- La CAPITALIZACIÓN NO IMPORTA ('Tito Doble P' = 'tito doble p' = 'TITO DOBLE P')
+- Verificar que sea un artista/banda REAL y conocido
+- Aceptar nombres artísticos en cualquier idioma"""
+        },
+        "videojuego": {
+            "definicion": "videojuego REAL con título oficial correcto que existe o existió",
+            "ejemplos_si": ["Tetris", "Tekken", "Tomb Raider", "Terraria", "The Last of Us", "Titanfall"],
+            "ejemplos_no": [
+                ("Trilogy GTA", "título incorrecto, sería 'GTA: The Trilogy'"),
+                ("Super Mario 3000", "no existe"),
+                ("Call of Duty Zombies War", "título inventado"),
+                ("FIFA 2099", "no existe"),
+                ("Zelda Adventures", "título incorrecto"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": """CRÍTICO: DEBE ser el título OFICIAL o abreviación reconocida.
+- NO aceptar títulos con palabras en orden incorrecto
+- NO aceptar variaciones inventadas de juegos reales
+- 'GTA V' es válido, 'Trilogy GTA' NO es válido"""
+        },
+        "marca": {
+            "definicion": "marca comercial REAL y conocida que existe o existió",
+            "ejemplos_si": ["Toyota", "Tesla", "Target", "Tiffany", "TikTok", "Twitch"],
+            "ejemplos_no": [
+                ("Marcas Buenas", "no es una marca"),
+                ("Super Tienda", "nombre genérico"),
+                ("TechnoMax", "verificar si existe"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser una marca REAL y reconocible a nivel nacional o internacional."
+        },
+        "comida": {
+            "definicion": "platillo, alimento o comida real (preparada o ingrediente)",
+            "ejemplos_si": ["Tacos", "Tiramisu", "Tortilla", "Tofu", "Tallarines", "Ternera"],
+            "ejemplos_no": [
+                ("Brasil", "es un país"),
+                ("Teléfono", "es un objeto"),
+                ("Tigre", "es un animal, no comida"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser algo que se COME.  Incluye platillos, ingredientes, snacks, etc."
+        },
+        "película": {
+            "definicion": "película cinematográfica REAL con título oficial correcto",
+            "ejemplos_si": ["Titanic", "Toy Story", "Thor", "Transformers", "Trolls"],
+            "ejemplos_no": [
+                ("The Movie", "título genérico"),
+                ("Película de Acción", "no es un título"),
+                ("Avengers 10", "no existe"),
+                ("Zootopia Adventures", "no existe"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser una película REAL.  Usar título oficial en cualquier idioma."
+        },
+        "serie de tv": {
+            "definicion": "serie de televisión o streaming REAL que existe o existió",
+            "ejemplos_si": ["The Office", "True Detective", "The Crown", "Tuca & Bertie", "Ted Lasso"],
+            "ejemplos_no": [
+                ("Zootopia Adventures", "no existe, Zootopia es película"),
+                ("The Series", "título genérico"),
+                ("Netflix Show", "no es un título"),
+                ("Breaking Good", "no existe"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser una serie REAL de TV o streaming. NO confundir películas con series."
+        },
+        
+        # DIFÍCILES
+        "monumento": {
+            "definicion": "monumento, edificio histórico o lugar emblemático REAL",
+            "ejemplos_si": ["Torre Eiffel", "Taj Mahal", "Torre de Pisa", "Teotihuacán", "Teatro Colón"],
+            "ejemplos_no": [
+                ("Brasil", "es un país, no un monumento"),
+                ("Edificio Alto", "nombre genérico"),
+                ("La Torre", "muy genérico"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser un monumento o lugar histórico REAL y reconocible."
+        },
+        "libro": {
+            "definicion": "libro REAL con título oficial correcto",
+            "ejemplos_si": ["Twilight", "The Hobbit", "To Kill a Mockingbird", "1984", "The Great Gatsby"],
+            "ejemplos_no": [
+                ("El Libro Bueno", "título genérico"),
+                ("Harry Potter 20", "no existe"),
+                ("The Story", "muy genérico"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser un libro REAL publicado.  Usar título oficial."
+        },
+        "deporte": {
+            "definicion": "deporte o actividad deportiva REAL reconocida",
+            "ejemplos_si": ["Tenis", "Taekwondo", "Triatlón", "Tiro con arco", "Tubing"],
+            "ejemplos_no": [
+                ("Correr Rápido", "es una acción, no un deporte con nombre"),
+                ("Jugar", "muy genérico"),
+                ("Quidditch", "es ficticio de Harry Potter"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser un deporte REAL y reconocido oficialmente."
+        },
+        "evento histórico": {
+            "definicion": "evento histórico REAL documentado que ocurrió",
+            "ejemplos_si": ["Tratado de Versalles", "Terremoto de 1985", "Toma de la Bastilla", "Titanic hundimiento"],
+            "ejemplos_no": [
+                ("La Guerra", "muy genérico"),
+                ("Evento Importante", "no es específico"),
+                ("Batalla de los Dioses", "ficticio"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser un evento REAL de la historia.  Debe ser verificable y documentado."
+        },
+        "empresa": {
+            "definicion": "empresa o compañía REAL que existe o existió",
+            "ejemplos_si": ["Tesla", "Toyota", "Twitter", "TikTok", "Telmex", "Televisa"],
+            "ejemplos_no": [
+                ("Empresa Grande", "nombre genérico"),
+                ("Tech Company", "no es un nombre real"),
+                ("Super Corp", "verificar si existe"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser una empresa REAL. Similar a marca pero más enfocado en compañías."
+        },
+        "personaje famoso": {
+            "definicion": "persona famosa REAL (celebridad, histórico, deportista, etc.)",
+            "ejemplos_si": ["Taylor Swift", "Tom Hanks", "Teresa de Calcuta", "Thatcher Margaret", "Tupac"],
+            "ejemplos_no": [
+                ("Tony Stark", "es un personaje ficticio de Marvel"),
+                ("El Famoso", "no es un nombre"),
+                ("Persona Conocida", "no es específico"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser una persona REAL famosa. NO personajes de ficción."
+        },
+        "universidad": {
+            "definicion": "universidad o institución educativa superior REAL",
+            "ejemplos_si": ["UNAM", "Universidad de Tokio", "Trinity College", "Tecnológico de Monterrey", "UCLA"],
+            "ejemplos_no": [
+                ("Universidad Grande", "nombre genérico"),
+                ("Escuela de Magia", "ficticia"),
+                ("Hogwarts", "ficticia de Harry Potter"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser una universidad REAL que existe o existió."
+        },
+        "instrumento musical": {
+            "definicion": "instrumento musical REAL",
+            "ejemplos_si": ["Trompeta", "Tambor", "Triángulo", "Tuba", "Theremin", "Timbal"],
+            "ejemplos_no": [
+                ("Música", "no es un instrumento"),
+                ("Sonido", "no es un instrumento"),
+                ("El Instrumento", "muy genérico"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser un instrumento REAL que se use para hacer música."
+        },
+        "superhéroe": {
+            "definicion": "superhéroe o superheroína de cómics, películas o series CONOCIDO",
+            "ejemplos_si": ["Thor", "Thanos", "Thing (La Cosa)", "Tigra", "Teen Titans"],
+            "ejemplos_no": [
+                ("Super Hombre Volador", "nombre inventado"),
+                ("El Héroe", "muy genérico"),
+                ("Captain Fantastico", "verificar si existe"),
+            ],
+            "requiere_existencia": True,
+            "reglas_extra": "DEBE ser un superhéroe REAL de cómics/películas/series conocidas (Marvel, DC, etc.).  NO inventados."
+        },
+    }
     
-    # Agregar ejemplos específicos de respuestas incorrectas según la categoría
-    if "fruta" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Rascacielos" es una Fruta? → NO - Rascacielos es un edificio/objeto, NO es una fruta
-- ¿"Brasil" es una Fruta? → NO - Brasil es un país, NO es una fruta
-- ¿"Perro" es una Fruta? → NO - Perro es un animal, NO es una fruta
-- ¿"Reloj" es una Fruta? → NO - Reloj es un objeto, NO es una fruta
-- ¿"Rugido" es una Fruta? → NO - Rugido es un sonido, NO es una fruta
-
-CASOS CORRECTOS:
-- ¿"Manzana" es una Fruta? → SI - Es una fruta válida
-- ¿"Rosa" es una Fruta? → NO - Rosa es una flor, NO es una fruta (aunque algunas rosas producen frutos, "rosa" se refiere a la flor)
-- ¿"Rambután" es una Fruta? → SI - Es una fruta válida"""
-    elif "nombre" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Radio" es un Nombre? → NO - Radio es un objeto/dispositivo, NO es un nombre de persona
-- ¿"Río" es un Nombre? → NO - Río es un cuerpo de agua, NO es un nombre de persona
-- ¿"Reloj" es un Nombre? → NO - Reloj es un objeto, NO es un nombre de persona
-- ¿"Rugido" es un Nombre? → NO - Rugido es un sonido, NO es un nombre de persona
-- ¿"Rascacielos" es un Nombre? → NO - Rascacielos es un edificio, NO es un nombre de persona
-
-CASOS CORRECTOS:
-- ¿"Roberto" es un Nombre? → SI - Es un nombre de persona válido
-- ¿"Rosa" es un Nombre? → SI - Es un nombre de persona válido
-- ¿"Ricardo" es un Nombre? → SI - Es un nombre de persona válido"""
-    elif "color" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Rugido" es un Color? → NO - Rugido es un sonido, NO es un color
-- ¿"Río" es un Color? → NO - Río es un cuerpo de agua, NO es un color
-- ¿"Reloj" es un Color? → NO - Reloj es un objeto, NO es un color
-- ¿"Rascacielos" es un Color? → NO - Rascacielos es un edificio, NO es un color
-- ¿"Rinoceronte" es un Color? → NO - Rinoceronte es un animal, NO es un color
-
-CASOS CORRECTOS:
-- ¿"Rojo" es un Color? → SI - Es un color válido
-- ¿"Rosa" es un Color? → SI - Es un color válido
-- ¿"Rubio" es un Color? → SI - Es un color válido (tinte de cabello)"""
-    elif "país" in categoria_lower or "ciudad" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Reloj" es un País? → NO - Reloj es un objeto, NO es un país o ciudad
-- ¿"Río" es un País? → NO - Río es un cuerpo de agua, NO es un país (aunque existe "Río de Janeiro" como ciudad, "Río" solo no es válido)
-- ¿"Rugido" es un País? → NO - Rugido es un sonido, NO es un país o ciudad
-- ¿"Rascacielos" es un País? → NO - Rascacielos es un edificio, NO es un país o ciudad
-- ¿"Rinoceronte" es un País? → NO - Rinoceronte es un animal, NO es un país o ciudad
-- ¿"Manzana" es un País? → NO - Manzana es una fruta, NO es un país o ciudad
-
-CASOS CORRECTOS:
-- ¿"Brasil" es un País? → SI - Es un país válido
-- ¿"Argentina" es un País? → SI - Es un país válido
-- ¿"Roma" es una Ciudad? → SI - Es una ciudad válida
-- ¿"Río de Janeiro" es una Ciudad? → SI - Es una ciudad válida"""
-    elif "animal" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Río" es un Animal? → NO - Río es un cuerpo de agua, NO es un animal
-- ¿"Reloj" es un Animal? → NO - Reloj es un objeto, NO es un animal
-- ¿"Rugido" es un Animal? → NO - Rugido es un sonido, NO es un animal
-- ¿"Rascacielos" es un Animal? → NO - Rascacielos es un edificio, NO es un animal
-- ¿"Manzana" es un Animal? → NO - Manzana es una fruta, NO es un animal
-
-CASOS CORRECTOS:
-- ¿"Rinoceronte" es un Animal? → SI - Es un animal válido
-- ¿"Rata" es un Animal? → SI - Es un animal válido
-- ¿"Rana" es un Animal? → SI - Es un animal válido"""
-    elif "objeto" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Rinoceronte" es un Objeto? → NO - Rinoceronte es un animal, NO es un objeto
-- ¿"Río" es un Objeto? → NO - Río es un cuerpo de agua, NO es un objeto
-- ¿"Rugido" es un Objeto? → NO - Rugido es un sonido, NO es un objeto
-- ¿"Manzana" es un Objeto? → NO - Manzana es una fruta, NO es un objeto (aunque físicamente es un objeto, en el contexto del juego se refiere a cosas inanimadas fabricadas)
-
-CASOS CORRECTOS:
-- ¿"Reloj" es un Objeto? → SI - Es un objeto válido
-- ¿"Radio" es un Objeto? → SI - Es un objeto válido
-- ¿"Rascacielos" es un Objeto? → SI - Es un objeto/edificio válido"""
-    elif "monumento" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Brasil" es un Monumento? → NO - Brasil es un país, NO es un monumento
-- ¿"Argentina" es un Monumento? → NO - Argentina es un país, NO es un monumento
-- ¿"México" es un Monumento? → NO - México es un país, NO es un monumento
-- ¿"Perro" es un Monumento? → NO - Perro es un animal, NO es un monumento
-- ¿"Manzana" es un Monumento? → NO - Manzana es una fruta, NO es un monumento
-
-CASOS CORRECTOS:
-- ¿"Torre Eiffel" es un Monumento? → SI - Es un monumento famoso
-- ¿"Estatua de la Libertad" es un Monumento? → SI - Es un monumento reconocido
-- ¿"Coliseo" es un Monumento? → SI - Es un monumento histórico"""
-    elif "alimento" in categoria_lower or "comida" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Brasil" es un Alimento? → NO - Brasil es un país, NO es un alimento
-- ¿"Argentina" es un Alimento? → NO - Argentina es un país, NO es un alimento
-- ¿"Perro" es un Alimento? → NO - Perro es un animal, NO es un alimento (a menos que sea en contexto culinario específico)
-- ¿"Torre Eiffel" es un Alimento? → NO - Torre Eiffel es un monumento, NO es un alimento
-
-CASOS CORRECTOS:
-- ¿"Manzana" es un Alimento? → SI - Es un alimento válido
-- ¿"Pizza" es un Alimento? → SI - Es un alimento válido
-- ¿"Arroz" es un Alimento? → SI - Es un alimento válido"""
-    elif "país" in categoria_lower or "ciudad" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Manzana" es un País? → NO - Manzana es una fruta, NO es un país
-- ¿"Perro" es un País? → NO - Perro es un animal, NO es un país
-- ¿"Torre Eiffel" es un País? → NO - Torre Eiffel es un monumento, NO es un país
-
-CASOS CORRECTOS:
-- ¿"Brasil" es un País? → SI - Es un país válido
-- ¿"Argentina" es un País? → SI - Es un país válido"""
-    elif "animal" in categoria_lower:
-        ejemplos_incorrectos = """
-CASOS INCORRECTOS ESPECÍFICOS (responde NO):
-- ¿"Brasil" es un Animal? → NO - Brasil es un país, NO es un animal
-- ¿"Manzana" es un Animal? → NO - Manzana es una fruta, NO es un animal
-- ¿"Torre Eiffel" es un Animal? → NO - Torre Eiffel es un monumento, NO es un animal
-
-CASOS CORRECTOS:
-- ¿"Perro" es un Animal? → SI - Es un animal válido
-- ¿"Gato" es un Animal? → SI - Es un animal válido"""
-    elif "serie" in categoria_lower or "tv" in categoria_lower or "televisión" in categoria_lower:
-        reglas_especiales = """
-   - DEBE ser una serie de TV REAL y reconocible que exista o haya existido
-   - NO aceptar nombres inventados (ej: "Zootopia Adventures" - no existe)
-   - NO aceptar películas como series (ej: "Zootopia" es película, no serie)
-   - NO aceptar títulos que suenan como series pero no existen
-   - Verifica que sea una serie de TV real, no un título inventado"""
-        ejemplos_categoria = """
-- Pregunta: ¿"Breaking Bad" es una Serie de TV? → SI - Serie real y reconocible
-- Pregunta: ¿"Zootopia Adventures" es una Serie de TV? → NO - No existe esta serie
-- Pregunta: ¿"Game of Thrones" es una Serie de TV? → SI - Serie real y famosa
-- Pregunta: ¿"Zootopia" es una Serie de TV? → NO - Es una película, no una serie"""
-    elif "película" in categoria_lower or "pelicula" in categoria_lower:
-        reglas_especiales = """
-   - DEBE ser una película REAL que exista o haya existido
-   - NO aceptar nombres inventados"""
-        ejemplos_categoria = """
-- Pregunta: ¿"Zootopia" es una Película? → SI - Película real de Disney
-- Pregunta: ¿"Zootopia Adventures" es una Película? → NO - No existe esta película"""
+    # ========================================================== 
+    # OBTENER INFORMACIÓN DE LA CATEGORÍA
+    # ========================================================== 
     
-    prompt = f"""Eres un validador experto de juego "BASTA/Stop".
-Tu trabajo es validar si una respuesta corresponde CORRECTAMENTE a una categoría.
+    # Buscar la categoría en las definiciones
+    info_categoria = None
+    for key, value in definiciones.items():
+        if key in categoria_lower:
+            info_categoria = value
+            break
+    
+    # Si no se encuentra, usar definición genérica
+    if not info_categoria:
+        info_categoria = {
+            "definicion": f"{categoria} real y reconocible",
+            "ejemplos_si": [],
+            "ejemplos_no": [],
+            "requiere_existencia": True,
+            "reglas_extra": "Debe ser real y verificable."
+        }
+    
+    # Formatear ejemplos
+    ejemplos_validos = ""
+    if info_categoria["ejemplos_si"]:
+        ejemplos_validos = "EJEMPLOS VÁLIDOS (SI): " + ", ".join(info_categoria["ejemplos_si"])
+    
+    ejemplos_invalidos = ""
+    if info_categoria["ejemplos_no"]:
+        ejemplos_invalidos = "EJEMPLOS INVÁLIDOS (NO):\n"
+        for ej, razon in info_categoria["ejemplos_no"]:
+            ejemplos_invalidos += f'   - "{ej}" → NO ({razon})\n'
+    
+    verificacion_existencia = ""
+    if info_categoria["requiere_existencia"]:
+        verificacion_existencia = f"""
+⚠️ VERIFICACIÓN DE EXISTENCIA (CRÍTICO):
+- "{respuesta}" DEBE EXISTIR en la realidad
+- Si NO reconoces que existe o tienes dudas → responde NO
+- NO aceptar nombres/títulos inventados, modificados o mal escritos
+- Si parece inventado o no lo puedes verificar → NO"""
+    
+    # ========================================================== 
+    # CONSTRUIR PROMPT FINAL
+    # ========================================================== 
+    
+    prompt = f"""Eres un validador ESTRICTO del juego "BASTA/Stop". 
 
-PREGUNTA PRINCIPAL (responde SI o NO):
-{pregunta_directa}
+══════════════════════════════════════════════════════════
+PREGUNTA: ¿"{respuesta}" es {articulo} {categoria} válido/a que empieza con "{letra}"? 
+══════════════════════════════════════════════════════════
 
-⚠️ REGLAS CRÍTICAS ESTRICTAS (SIGUE ESTE ORDEN ESTRICTAMENTE):
+DEFINICIÓN DE "{categoria. upper()}": {info_categoria["definicion"]}
 
-1. ⚠️⚠️⚠️ VERIFICACIÓN DE CATEGORÍA (LO MÁS IMPORTANTE - VERIFICA ESTO PRIMERO) ⚠️⚠️⚠️:
-   - ANTES de verificar la letra, pregunta: ¿"{respuesta}" es realmente {articulo} {categoria}?
-   - Si "{respuesta}" es otra cosa (país, animal, fruta, monumento, objeto, color, nombre, parte del cuerpo, sonido, etc.) pero NO es {articulo} {categoria}, responde "NO" INMEDIATAMENTE
-   - NO importa si empieza con la letra correcta, si NO es {articulo} {categoria}, la respuesta es "NO"
+{info_categoria["reglas_extra"]}
 
-2. ⚠️ VERIFICACIÓN DE PALABRA VÁLIDA Y RECONOCIBLE:
-   - "{respuesta}" DEBE ser una palabra REAL, RECONOCIBLE y que EXISTA en el idioma español
-   - RECHAZA INMEDIATAMENTE si:
-     * Parece una palabra inventada o mal escrita (ej: "Sasd", "asdas", "Sonso")
-     * Es una variación mal escrita de otra palabra (ej: "NONDON" en lugar de "Londres")
-     * Contiene repeticiones excesivas de letras (ej: "Negritoooo" con muchas 'o')
-     * Es una combinación de palabras sin sentido (ej: "Nohay", "NOse", "Nomanches")
-     * No es una palabra reconocible en español
-     * Parece una combinación aleatoria de letras (ej: "asdas", "sasd")
-     * Es un verbo cuando la categoría NO es "Verbo" o "Acción" (ej: "Salir" NO es un país)
-   - Si no estás 100% seguro de que sea una palabra real y reconocible, responde "NO"
-   - Si la palabra te parece extraña, inventada o no reconocible, responde "NO"
+══════════════════════════════════════════════════════════
+PROCESO DE VALIDACIÓN (sigue TODOS los pasos en orden):
+══════════════════════════════════════════════════════════
 
-3. ⚠️ VERIFICACIÓN DE CORRESPONDENCIA ESPECÍFICA:
-   - Para "Nombre": DEBE ser un nombre de persona real y reconocible (NO objetos, animales, lugares, etc.)
-   - Para "Color": DEBE ser un color real y reconocible (NO sonidos, objetos, animales, etc.)
-   - Para "Animal": DEBE ser un animal real y reconocible (NO objetos, partes del cuerpo, lugares, etc.)
-   - Para "País o Ciudad": DEBE ser un país o ciudad real y reconocible (NO objetos, animales, variaciones mal escritas, etc.)
-   - Para "Objeto": DEBE ser un objeto físico fabricado o creado (NO partes del cuerpo, animales, lugares, etc.)
-   - Para "Fruta": DEBE ser una fruta real y reconocible (NO objetos, animales, lugares, expresiones, etc.)
-   - Si "{respuesta}" NO corresponde específicamente a {categoria}, responde "NO"
+PASO 1 - ¿ES UNA PALABRA/NOMBRE VÁLIDO Y BIEN ESCRITO?
+- ¿Está correctamente escrita sin errores ortográficos?
+- La CAPITALIZACIÓN NO IMPORTA (ignorar mayúsculas/minúsculas)
+- RECHAZA INMEDIATAMENTE si:
+  * Parece inventada o sin sentido: "Sasd", "asdas", "Xyzabc"
+  * Está mal escrita: "NONDON" (sería Londres), "Mécsico" (sería México)  
+  * Es combinación sin sentido: "Nohay", "NOse", "Nomanches"
+  * Tiene letras repetidas excesivas: "Holaaaaaa", "Siiiii"
 
-4. VERIFICACIÓN DE LETRA (solo si pasó todas las verificaciones anteriores):
-   - "{respuesta}" DEBE empezar con la letra "{letra}" (mayúscula o minúscula)
-   - Si no empieza con "{letra}", responde NO
+PASO 2 - ¿CORRESPONDE A LA CATEGORÍA "{categoria. upper()}"?
+- "{respuesta}" DEBE ser específicamente: {info_categoria["definicion"]}
+- NO debe ser otra cosa (país cuando piden fruta, objeto cuando piden animal, etc.)
+- Si es claramente OTRA categoría → NO
+{verificacion_existencia}
 
-❌ REGLAS GENERALES DE RECHAZO (RECHAZA SI CUMPLE CUALQUIERA):
-- Palabras inventadas, mal escritas o no reconocibles
-- Variaciones mal escritas de palabras reales (ej: "NONDON" en lugar de "Londres")
-- Combinaciones de palabras sin sentido (ej: "Nohay", "NOse", "Nomanches")
-- Palabras con repeticiones excesivas de letras (ej: "Negritoooo")
-- Respuestas que NO corresponden específicamente a la categoría {categoria}
-- Partes del cuerpo cuando la categoría NO es "Parte del cuerpo" (ej: "Nariz" NO es un objeto)
-- Sonidos cuando la categoría NO es "Sonido" (ej: "Rugido" NO es un color)
-- Expresiones o frases cuando la categoría requiere una palabra específica
-- Cualquier cosa que no sea claramente y específicamente {articulo} {categoria}
+PASO 3 - ¿EMPIEZA CON LA LETRA "{letra. upper()}"?
+- La primera letra (ignorando acentos) debe ser "{letra.upper()}"
+- Acentos no afectan: "Ángel" empieza con A, "Élefante" empieza con E
 
-{ejemplos_incorrectos}
+══════════════════════════════════════════════════════════
+EJEMPLOS PARA "{categoria.upper()}":
+══════════════════════════════════════════════════════════
+{ejemplos_validos}
 
-⚠️⚠️⚠️ INSTRUCCIÓN FINAL CRÍTICA ⚠️⚠️⚠️:
-- PRIMERO: Verifica si "{respuesta}" es una palabra REAL y RECONOCIBLE
-- SEGUNDO: Verifica si "{respuesta}" es realmente {articulo} {categoria} (NO otra cosa)
-- TERCERO: Verifica que empiece con la letra "{letra}"
-- Si NO cumple CUALQUIERA de estas condiciones, responde "NO" INMEDIATAMENTE
-- Si no estás 100% seguro, responde "NO" (es mejor rechazar una respuesta dudosa que aceptar una incorrecta)
-- La respuesta DEBE ser: palabra real + corresponder a {categoria} + empezar con "{letra}"
+{ejemplos_invalidos}
 
-POLÍTICA DE VALIDACIÓN: SER ESTRICTO Y CONSERVADOR
-- Rechaza cualquier respuesta que parezca dudosa, inventada, mal escrita o que no corresponda claramente a la categoría
-- Es mejor rechazar 10 respuestas dudosas que aceptar 1 incorrecta
-- Si hay CUALQUIER duda, responde "NO"
+══════════════════════════════════════════════════════════
+POLÍTICA: MUY ESTRICTO - ANTE LA DUDA, RECHAZAR
+══════════════════════════════════════════════════════════
+- Si no estás 100% seguro de que existe → NO
+- Si el nombre/título parece modificado o incorrecto → NO
+- Si no reconoces que es real → NO
+- Si hay CUALQUIER duda → NO
+- Es mejor rechazar 10 dudosas que aceptar 1 incorrecta
 
-Responde SOLO "SI" o "NO" seguido de una razón breve.
-Formato: "SI - razón" o "NO - razón"
+══════════════════════════════════════════════════════════
+RESPUESTA REQUERIDA:
+══════════════════════════════════════════════════════════
+Responde ÚNICAMENTE en este formato:
+"SI - [razón breve]" o "NO - [razón breve]"
 """
+    
     return prompt
 
 
 
 
 # ==========================================================
-# VALIDACIÓN CON IA (OpenAI)
+# VALIDACIÓN CON IA (OpenAI) - MEJORADA
 # ==========================================================
+
+# Lista de palabras spam/inventadas comunes
+PALABRAS_SPAM = {
+    "asd", "asdf", "asdas", "sasd", "qwerty", "zxcv", "hjkl", "fghj",
+    "nohay", "nose", "nose", "nomanches", "nada", "ninguna", "ninguno",
+    "xxx", "zzz", "aaa", "bbb", "test", "prueba", "hola", "chao",
+    "jaja", "jeje", "lol", "xd", "wtf", "omg"
+}
+
+# Respuestas evasivas o tramposas
+RESPUESTAS_EVASIVAS = {
+    "no hay", "no se", "no sé", "no existe", "ninguno", "ninguna", 
+    "nada", "no aplica", "n/a", "na", "null", "none", "skip"
+}
+
+def normalizar_texto(texto):
+    """Normaliza texto removiendo acentos para comparaciones"""
+    texto_normalizado = unicodedata.normalize('NFD', texto)
+    return ''.join(c for c in texto_normalizado if unicodedata. category(c) != 'Mn')
+
+def obtener_primera_letra(texto):
+    """Obtiene la primera letra alfabética del texto (sin acentos)"""
+    texto_limpio = normalizar_texto(texto. strip())
+    for char in texto_limpio:
+        if char.isalpha():
+            return char. upper()
+    return ""
+
+def es_palabra_spam(texto):
+    """Detecta si una palabra parece spam o inventada"""
+    texto_lower = texto.lower(). strip()
+    texto_sin_espacios = texto_lower.replace(" ", "")
+    
+    # Verificar contra lista de spam
+    if texto_sin_espacios in PALABRAS_SPAM:
+        return True, "Palabra no válida o spam"
+    
+    # Verificar respuestas evasivas
+    if texto_lower in RESPUESTAS_EVASIVAS:
+        return True, "Respuesta evasiva no permitida"
+    
+    # Detectar caracteres repetidos excesivos (ej: "holaaaaaa", "siiiii")
+    if re.search(r'(.)\1{3,}', texto_lower):
+        return True, "Caracteres repetidos excesivamente"
+    
+    # Detectar patrones de teclado (qwerty, asdf, etc.)
+    patrones_teclado = ['qwer', 'asdf', 'zxcv', 'qaz', 'wsx', 'edc']
+    if any(patron in texto_sin_espacios for patron in patrones_teclado):
+        return True, "Patrón de teclado detectado"
+    
+    return False, ""
+
+def validacion_previa_basica(respuesta, categoria, letra):
+    """
+    Validación rápida antes de llamar a la IA. 
+    Retorna: (debe_rechazar: bool, razon: str) o (False, "") si debe continuar a IA
+    """
+    
+    if not respuesta:
+        return True, "Respuesta vacía"
+    
+    respuesta_limpia = respuesta. strip()
+    
+    # Muy corta (menos de 2 caracteres)
+    if len(respuesta_limpia) < 2:
+        return True, "Respuesta demasiado corta"
+    
+    # Solo espacios o caracteres especiales
+    if not any(c. isalpha() for c in respuesta_limpia):
+        return True, "Respuesta sin letras válidas"
+    
+    # Verificar spam/palabras inventadas
+    es_spam, razon_spam = es_palabra_spam(respuesta_limpia)
+    if es_spam:
+        return True, razon_spam
+    
+    # Verificar que empiece con la letra correcta
+    primera_letra = obtener_primera_letra(respuesta_limpia)
+    letra_esperada = letra.upper()
+    
+    if primera_letra != letra_esperada:
+        return True, f"No empieza con la letra '{letra_esperada}' (empieza con '{primera_letra}')"
+    
+    # Detectar solo números
+    if respuesta_limpia.isdigit():
+        return True, "Solo contiene números"
+    
+    # Detectar palabras con demasiadas consonantes seguidas (probable inventada)
+    # Excepto para palabras extranjeras conocidas
+    vocales = set('aeiouáéíóúüAEIOUÁÉÍÓÚÜ')
+    max_consonantes_seguidas = 0
+    consonantes_actual = 0
+    
+    for char in respuesta_limpia:
+        if char.isalpha() and char not in vocales:
+            consonantes_actual += 1
+            max_consonantes_seguidas = max(max_consonantes_seguidas, consonantes_actual)
+        else:
+            consonantes_actual = 0
+    
+    # 4+ consonantes seguidas es muy raro en español (excepto palabras como "construir")
+    if max_consonantes_seguidas >= 5:
+        return True, "Patrón de letras no reconocible"
+    
+    # Pasó validación básica, continuar a IA
+    return False, ""
+
+
 def validar_respuesta_con_ia(respuesta, categoria, letra):
     """
     Valida una respuesta usando IA de OpenAI
     Retorna: (es_valida: bool, razon: str, confianza: float)
     """
     
-    # No validar respuestas vacías (ya se filtran antes)
-    if not respuesta or len(respuesta.strip()) < 2:
-        return False, "Respuesta demasiado corta", 1.0
+    # ==========================================================
+    # PASO 1: VALIDACIÓN PREVIA (sin IA)
+    # ==========================================================
+    debe_rechazar, razon_rechazo = validacion_previa_basica(respuesta, categoria, letra)
     
-    respuesta_limpia = respuesta.strip()
-    respuesta_lower = respuesta_limpia.lower()
+    if debe_rechazar:
+        print(f"⛔ Rechazado previamente '{respuesta}': {razon_rechazo}")
+        return False, razon_rechazo, 1.0
     
-    # Detectar respuestas obviamente inválidas
-    if len(set(respuesta_lower)) <= 2:  # Ej: "ññññññ", "aaaaa", "sis"
-        return False, "Respuesta sin sentido (caracteres repetidos)", 1.0
+    respuesta_limpia = respuesta. strip()
     
-    # Detectar palabras que parecen inventadas o sin sentido (patrones comunes)
-    # Palabras muy cortas sin sentido (menos de 3 caracteres, excepto si son nombres comunes)
-    if len(respuesta_limpia) < 3:
-        if categoria.lower() not in ["nombre"]:  # Permitir nombres cortos como "Ana", "Luis"
-            return False, "Respuesta demasiado corta o sin sentido", 1.0
-    
-    # Detectar combinaciones de letras que no forman palabras reconocibles
-    # Patrones como "asdas", "sasd", "sonso", etc.
-    if len(respuesta_limpia) >= 4:
-        # Verificar si parece una palabra inventada (muchas consonantes seguidas o patrones extraños)
-        vocales = set('aeiouáéíóúü')
-        consonantes_seguidas = 0
-        max_consonantes = 0
-        for char in respuesta_lower:
-            if char not in vocales and char.isalpha():
-                consonantes_seguidas += 1
-                max_consonantes = max(max_consonantes, consonantes_seguidas)
-            else:
-                consonantes_seguidas = 0
-        
-        # Si tiene 3 o más consonantes seguidas, probablemente es inventada
-        if max_consonantes >= 3:
-            return False, "Palabra no reconocible o inventada", 1.0
-        
-        # Detectar patrones comunes de palabras inventadas
-        # Palabras que terminan en consonantes poco comunes o tienen patrones extraños
-        patrones_inventados = ["asd", "sasd", "asdas", "qwerty", "zxcv", "hjkl", "fghj"]
-        if any(patron in respuesta_lower for patron in patrones_inventados):
-            return False, "Palabra no reconocible o inventada", 1.0
-        
-        # Detectar palabras que parecen combinaciones aleatorias (muchas consonantes alternadas)
-        # Ej: "sasd", "asdas" tienen patrones CVCV o VCVCV que no son comunes en español
-        if len(respuesta_limpia) == 4 or len(respuesta_limpia) == 5:
-            # Contar vocales y consonantes
-            num_vocales = sum(1 for c in respuesta_lower if c in vocales)
-            num_consonantes = sum(1 for c in respuesta_lower if c.isalpha() and c not in vocales)
-            
-            # Si tiene muy pocas vocales para su longitud, probablemente es inventada
-            if num_vocales == 0 and num_consonantes >= 3:
-                return False, "Palabra no reconocible o inventada", 1.0
-            
-            # Si tiene un patrón muy regular CVCV o VCVCV y no es una palabra común, rechazar
-            # (esto es una heurística, pero ayuda a detectar "sasd", "asdas")
-            if num_vocales == num_consonantes and num_vocales <= 2:
-                # Verificar si es una palabra común en español (lista básica)
-                palabras_comunes_4_5 = {"casa", "mesa", "gato", "perro", "agua", "libro", "carta", "plato", "vaso", "silla", "mesa", "cama", "pelo", "mano", "pie", "ojo", "cara", "boca", "nariz", "diente", "brazo", "pierna", "hueso", "piel", "sangre", "hueso", "carne", "pan", "leche", "huevo", "queso", "azul", "rojo", "verde", "negro", "blanco", "gris", "amarillo", "rosa", "marrón", "naranja", "morado", "celeste", "verde", "azul"}
-                if respuesta_lower not in palabras_comunes_4_5:
-                    # Si no está en la lista y tiene un patrón sospechoso, rechazar
-                    # (esto es conservador pero ayuda a detectar palabras inventadas)
-                    pass  # No rechazar automáticamente, dejar que la IA decida
-    
-    # Detectar palabras que son verbos comunes cuando no corresponde
-    verbos_comunes = {"salir", "entrar", "comer", "beber", "dormir", "hablar", "hacer", "decir", "ir", "venir", "ver", "saber", "poder", "querer", "tener", "estar", "ser"}
-    if respuesta_lower in verbos_comunes:
-        if categoria.lower() not in ["verbo", "acción"]:
-            return False, f"'{respuesta_limpia}' es un verbo, no corresponde a la categoría", 1.0
-    
-    # USAR OPENAI (si está disponible)
+    # ==========================================================
+    # PASO 2: VALIDACIÓN CON IA
+    # ==========================================================
     if OPENAI_AVAILABLE and openai_client:
         try:
-            # Usar prompt mejorado (adaptado para JSON)
-            prompt_base = generar_prompt_validacion(respuesta, categoria, letra)
-            # Cambiar el formato de respuesta para JSON
-            prompt = prompt_base.replace(
-                'Responde SOLO "SI" o "NO" seguido de una razón breve.\nFormato: "SI - razón" o "NO - razón"',
-                'Responde SOLO con formato JSON:\n{"valida": true/false, "razon": "explicación breve", "confianza": 0.0-1.0}'
-            )
+            # Generar prompt optimizado
+            prompt = generar_prompt_validacion(respuesta_limpia, categoria, letra)
+            
+            # Instrucción de sistema clara
+            system_prompt = """Eres un validador ESTRICTO del juego BASTA/Stop.
+Tu trabajo es verificar si las respuestas son REALES y corresponden a la categoría. 
 
-            response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+REGLAS CRÍTICAS:
+1. Si NO reconoces que algo existe → responde NO
+2. Si el nombre/título parece inventado o modificado → responde NO  
+3. Si tienes CUALQUIER duda → responde NO
+4. La capitalización NO importa (mayúsculas/minúsculas son equivalentes)
+5.  Sé MUY ESTRICTO: es mejor rechazar algo válido que aceptar algo inválido
+
+Responde SOLO con JSON válido, sin texto adicional:
+{"valida": true/false, "razon": "explicación breve", "confianza": 0.0-1.0}"""
+
+            response = openai_client. chat.completions.create(
+                model="gpt-4o-mini",  # Más preciso que gpt-3.5-turbo para validaciones
                 messages=[
-                    {"role": "system", "content": "Eres un validador experto de juegos de palabras. Responde solo con JSON."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,
-                max_tokens=150,
-                timeout=5  # 5 segundos máximo
+                temperature=0.1,  # Más bajo = más consistente y estricto
+                max_tokens=100,
+                timeout=8
             )
             
-            # Parsear respuesta
             resultado_texto = response.choices[0].message.content.strip()
             
-            # Extraer JSON (puede venir con ```json o sin formato)
-            if "```json" in resultado_texto:
-                resultado_texto = resultado_texto.split("```json")[1].split("```")[0]
-            elif "```" in resultado_texto:
-                resultado_texto = resultado_texto.split("```")[1].split("```")[0]
+            # Limpiar respuesta de markdown si viene envuelta
+            if "```" in resultado_texto:
+                # Extraer contenido entre ```
+                match = re.search(r'```(? :json)?\s*(.*? )\s*```', resultado_texto, re.DOTALL)
+                if match:
+                    resultado_texto = match.group(1)
             
-            resultado = json.loads(resultado_texto.strip())
+            # Intentar parsear JSON
+            try:
+                resultado = json.loads(resultado_texto)
+            except json.JSONDecodeError:
+                # Intentar extraer JSON de texto mixto
+                match = re.search(r'\{[^{}]*\}', resultado_texto)
+                if match:
+                    resultado = json.loads(match.group())
+                else:
+                    raise ValueError(f"No se pudo extraer JSON de: {resultado_texto}")
             
-            es_valida = resultado.get("valida", False)
-            razon = resultado.get("razon", "Sin razón especificada")
-            confianza = resultado.get("confianza", 0.5)
+            es_valida = bool(resultado.get("valida", False))
+            razon = str(resultado.get("razon", "Sin razón especificada"))
+            confianza = float(resultado.get("confianza", 0.5))
             
-            print(f"🤖 OpenAI validó '{respuesta}' ({categoria}): {'✓' if es_valida else '✗'} - {razon}")
+            # Asegurar que confianza esté en rango válido
+            confianza = max(0.0, min(1.0, confianza))
+            
+            # Log de resultado
+            emoji = "✅" if es_valida else "❌"
+            print(f"🤖 IA validó '{respuesta_limpia}' ({categoria}, letra {letra}): {emoji} - {razon} (confianza: {confianza:.0%})")
             
             return es_valida, razon, confianza
             
         except json.JSONDecodeError as e:
-            print(f"❌ Error parseando JSON de OpenAI: {e}")
-            return True, "Error al procesar validación IA", 0.3
+            print(f"⚠️ Error parseando JSON de IA: {e}")
+            # En caso de error de parsing, ser conservador y rechazar
+            return False, "Error de validación - respuesta rechazada por precaución", 0.5
+            
         except Exception as e:
-            print(f"❌ Error en OpenAI: {e}")
-            return True, "Error de validación IA", 0.3
+            print(f"⚠️ Error en llamada a IA: {type(e).__name__}: {e}")
+            # En caso de error de API, ser conservador
+            return False, f"Error de validación IA: {str(e)[:50]}", 0.3
     
-    # Si OpenAI no está disponible, usar validación básica
-    print(f"⚠️ OpenAI no disponible. Validación básica: '{respuesta}' ({'✓' if respuesta_limpia else '✗'})")
-    # Validación básica: solo verificar que no esté vacía y empiece con la letra correcta
-    return True, "Validación básica (IA no disponible)", 0.5
+    # ==========================================================
+    # PASO 3: FALLBACK sin IA (muy básico, ser conservador)
+    # ==========================================================
+    print(f"⚠️ IA no disponible. Validación básica para '{respuesta_limpia}'")
+    
+    # Sin IA, solo aceptamos si pasa todas las validaciones básicas
+    # y rechazamos casos sospechosos
+    
+    # Verificar longitud mínima razonable
+    if len(respuesta_limpia) < 3:
+        return False, "Respuesta muy corta (IA no disponible)", 0.5
+    
+    # Si llegó aquí, aceptar con baja confianza
+    return True, "Validación básica (IA no disponible)", 0. 4
+
+
 
 
 # ==========================================================
