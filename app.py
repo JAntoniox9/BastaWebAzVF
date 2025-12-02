@@ -12,17 +12,27 @@ from database import db, init_db, SalaDB
 try:
     from openai import OpenAI
     from dotenv import load_dotenv
+    import os # Aseguramos que os esté disponible aquí
     load_dotenv()
+    
+    print(f"🔍 DEBUG: Buscando API Key...")
+    key = os.getenv("OPENAI_API_KEY")
+    
+    if not key:
+        print("❌ DEBUG: La variable OPENAI_API_KEY está vacía o es None")
+        raise ValueError("API Key no encontrada")
+    
+    print(f"✅ DEBUG: Clave encontrada (Longitud: {len(key)})")
     
     # Intentar configurar OpenAI
     try:
-        openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        openai_client = OpenAI(api_key=key)
         OPENAI_AVAILABLE = True
         print("✅ OpenAI configurado correctamente")
-    except Exception:
+    except Exception as e:
         openai_client = None
         OPENAI_AVAILABLE = False
-        print("⚠️ OpenAI no disponible")
+        print(f"🛑 ERROR AL INICIAR CLIENTE: {str(e)}") # <--- ESTO ES LO QUE NECESITAMOS VER
     
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -31,7 +41,7 @@ except ImportError:
 except Exception as e:
     OPENAI_AVAILABLE = False
     openai_client = None
-    print(f"⚠️ Error configurando IA: {e}")
+    print(f"⚠️ Error general configurando IA: {e}")
 
 
 # ==========================================================
