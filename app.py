@@ -1363,41 +1363,42 @@ def game(codigo):
 # FUNCIONES DE CONTROL DE TIEMPO
 # ==========================================================
 def temporizador_ronda(codigo):
-    sala = state["salas"].get(codigo, {})
-    duracion = sala.get("tiempo_restante", 180)
-    print(f"🕒 Temporizador iniciado para sala {codigo} con {duracion} segundos")
-    timers_activos[codigo] = True
-
-    s = duracion
-    while s > 0:
-        if not timers_activos.get(codigo, True):
-            print(f"⏹️ Temporizador cancelado para sala {codigo}")
-            return
-        
+    with app.app_context():
         sala = state["salas"].get(codigo, {})
-        
-        # Verificar si está pausado
-        if sala.get("pausada", False):
-            # Emitir estado de pausa cada segundo mientras está pausado
-            socketio.emit("update_timer", {"tiempo": s, "pausada": True}, room=codigo)
-            time.sleep(0.5)
-            continue
-        
-        sala["tiempo_restante"] = s
-        socketio.emit("update_timer", {"tiempo": s, "pausada": sala.get("pausada", False)}, room=codigo)
-        s -= 1
-        time.sleep(1)
+        duracion = sala.get("tiempo_restante", 180)
+        print(f"🕒 Temporizador iniciado para sala {codigo} con {duracion} segundos")
+        timers_activos[codigo] = True
 
-    sala = state["salas"].get(codigo, {})
-    if sala.get("basta_activado", False):
-        print(f"⚠️ Ronda {codigo} ya terminada por ¡BASTA!, no iniciar conteo doble")
-        return
+        s = duracion
+        while s > 0:
+            if not timers_activos.get(codigo, True):
+                print(f"⏹️ Temporizador cancelado para sala {codigo}")
+                return
+            
+            sala = state["salas"].get(codigo, {})
+            
+            # Verificar si está pausado
+            if sala.get("pausada", False):
+                # Emitir estado de pausa cada segundo mientras está pausado
+                socketio.emit("update_timer", {"tiempo": s, "pausada": True}, room=codigo)
+                time.sleep(0.5)
+                continue
+            
+            sala["tiempo_restante"] = s
+            socketio.emit("update_timer", {"tiempo": s, "pausada": sala.get("pausada", False)}, room=codigo)
+            s -= 1
+            time.sleep(1)
 
-    sala["basta_activado"] = True
-    save_state(state)
-    print(f"⏰ Tiempo agotado en sala {codigo}")
-    socketio.emit("basta_triggered", {"motivo": "Tiempo agotado"}, room=codigo)
-    threading.Thread(target=conteo_final, args=(codigo,)).start()
+        sala = state["salas"].get(codigo, {})
+        if sala.get("basta_activado", False):
+            print(f"⚠️ Ronda {codigo} ya terminada por ¡BASTA!, no iniciar conteo doble")
+            return
+
+        sala["basta_activado"] = True
+        save_state(state)
+        print(f"⏰ Tiempo agotado en sala {codigo}")
+        socketio.emit("basta_triggered", {"motivo": "Tiempo agotado"}, room=codigo)
+        threading.Thread(target=conteo_final, args=(codigo,)).start()
 
 
 # ==========================================================
@@ -1570,50 +1571,81 @@ def on_disconnect():
         return
         
     def verificar_salida():
-        time.sleep(3)
-        
-        jugador_sigue_conectado = False
-        for sid_activo, nombre_activo in sid_to_name.items():
-            if nombre_activo == jugador and sid_to_room.get(sid_activo) == codigo:
-                jugador_sigue_conectado = True
-                break
-        
-        if jugador_sigue_conectado:
-            return
-
-        sala = state["salas"].get(codigo)
-        if not sala:
-            return
-
-        anfitrion = sala.get("anfitrion")
-        
-        if jugador in sala.get("jugadores_listos", []):
-            sala["jugadores_listos"].remove(jugador)
-
-        if jugador == anfitrion:
-            # Reasignar anfitrión en lugar de eliminar la sala
-            sala["jugadores"].remove(jugador)
+        with app.app_context():
+            time.sleep(3)
             
-            if len(sala["jugadores"]) > 0:
-                # Hay otros jugadores: reasignar anfitrión
-                nuevo_anfitrion = sala["jugadores"][0]
-                sala["anfitrion"] = nuevo_anfitrion
+            jugador_sigue_conectado = False
+            for sid_activo, nombre_activo in sid_to_name.items():
+                if nombre_activo == jugador and sid_to_room.get(sid_activo) == codigo:
+                    jugador_sigue_conectado = True
+                    break
+            
+            if jugador_sigue_conectado:
+                return
+
+            sala = state["salas"].get(codigo)
+            if not sala:
+                return
+
+            anfitrion = sala.get("anfitrion")
+            
+            if jugador in sala.get("jugadores_listos", []):
+                sala["jugadores_listos"].remove(jugador)
+
+            if jugador == anfitrion:
+                # Reasignar anfitrión en lugar de eliminar la sala
+                sala["jugadores"].remove(jugador)
                 
-                # Asegurarse que el nuevo anfitrión esté en la lista de listos
-                if nuevo_anfitrion not in sala["jugadores_listos"]:
-                    sala["jugadores_listos"].append(nuevo_anfitrion)
-                
+                if len(sala["jugadores"]) > 0:
+                    # Hay otros jugadores: reasignar anfitrión
+                    nuevo_anfitrion = sala["jugadores"][0]
+                    sala["anfitrion"] = nuevo_anfitrion
+                    
+                    # Asegurarse que el nuevo anfitrión esté en la lista de listos
+                    if nuevo_anfitrion not in sala["jugadores_listos"]:
+                        sala["jugadores_listos"].append(nuevo_anfitrion)
+                    
+                    save_state(state)
+                    
+                    print(f"👑 {jugador} salió. Nuevo anfitrión: {nuevo_anfitrion} en sala {codigo}")
+                    
+                    # Notificar cambio de anfitrión
+                    socketio.emit("nuevo_anfitrion", {
+                        "nuevo_anfitrion": nuevo_anfitrion,
+                        "mensaje": f"👑 {nuevo_anfitrion} es ahora el anfitrión"
+                    }, room=codigo)
+                    
+                    # Actualizar lista de jugadores
+                    socketio.emit("player_joined", {
+                        "jugadores": sala["jugadores"],
+                        "puntuaciones": sala.get("puntuaciones", {}),
+                        "jugadores_listos": sala.get("jugadores_listos", []),
+                        "jugadores_desconectados": sala.get("jugadores_desconectados", []),
+                        "configuracion": {
+                            "rondas": sala.get("rondas", 3),
+                            "dificultad": sala.get("dificultad", "normal"),
+                            "modo_juego": sala.get("modo_juego", "clasico"),
+                            "chat_habilitado": sala.get("chat_habilitado", True),
+                            "sonidos_habilitados": sala.get("sonidos_habilitados", True),
+                            "powerups_habilitados": sala.get("powerups_habilitados", True),
+                            "validacion_activa": sala.get("validacion_activa", True)
+                        }
+                    }, room=codigo)
+                else:
+                    # No hay más jugadores: eliminar sala
+                    print(f"👋 ANFITRIÓN {jugador} salió y no hay más jugadores. Eliminando sala {codigo}.")
+                    timers_activos[codigo] = False
+                    if codigo in state["salas"]:
+                        del state["salas"][codigo]
+                    save_state(state)
+
+            elif jugador in sala["jugadores"]:
+                # Marcar como desconectado en lugar de eliminar
+                if "jugadores_desconectados" not in sala:
+                    sala["jugadores_desconectados"] = []
+                if jugador not in sala["jugadores_desconectados"]:
+                    sala["jugadores_desconectados"].append(jugador)
                 save_state(state)
-                
-                print(f"👑 {jugador} salió. Nuevo anfitrión: {nuevo_anfitrion} en sala {codigo}")
-                
-                # Notificar cambio de anfitrión
-                socketio.emit("nuevo_anfitrion", {
-                    "nuevo_anfitrion": nuevo_anfitrion,
-                    "mensaje": f"👑 {nuevo_anfitrion} es ahora el anfitrión"
-                }, room=codigo)
-                
-                # Actualizar lista de jugadores
                 socketio.emit("player_joined", {
                     "jugadores": sala["jugadores"],
                     "puntuaciones": sala.get("puntuaciones", {}),
@@ -1629,44 +1661,14 @@ def on_disconnect():
                         "validacion_activa": sala.get("validacion_activa", True)
                     }
                 }, room=codigo)
-            else:
-                # No hay más jugadores: eliminar sala
-                print(f"👋 ANFITRIÓN {jugador} salió y no hay más jugadores. Eliminando sala {codigo}.")
-                timers_activos[codigo] = False
-                if codigo in state["salas"]:
-                    del state["salas"][codigo]
-                save_state(state)
+                print(f"👋 {jugador} salió de la sala {codigo}")
 
-        elif jugador in sala["jugadores"]:
-            # Marcar como desconectado en lugar de eliminar
-            if "jugadores_desconectados" not in sala:
-                sala["jugadores_desconectados"] = []
-            if jugador not in sala["jugadores_desconectados"]:
-                sala["jugadores_desconectados"].append(jugador)
-            save_state(state)
-            socketio.emit("player_joined", {
-                "jugadores": sala["jugadores"],
-                "puntuaciones": sala.get("puntuaciones", {}),
-                "jugadores_listos": sala.get("jugadores_listos", []),
-                "jugadores_desconectados": sala.get("jugadores_desconectados", []),
-                "configuracion": {
-                    "rondas": sala.get("rondas", 3),
-                    "dificultad": sala.get("dificultad", "normal"),
-                    "modo_juego": sala.get("modo_juego", "clasico"),
-                    "chat_habilitado": sala.get("chat_habilitado", True),
-                    "sonidos_habilitados": sala.get("sonidos_habilitados", True),
-                    "powerups_habilitados": sala.get("powerups_habilitados", True),
-                    "validacion_activa": sala.get("validacion_activa", True)
-                }
-            }, room=codigo)
-            print(f"👋 {jugador} salió de la sala {codigo}")
-
-            if len(sala["jugadores"]) == 0:
-                print(f"🗑️ Eliminando sala {codigo} (sin jugadores)")
-                timers_activos[codigo] = False
-                if codigo in state["salas"]:
-                    del state["salas"][codigo]
-                save_state(state)
+                if len(sala["jugadores"]) == 0:
+                    print(f"🗑️ Eliminando sala {codigo} (sin jugadores)")
+                    timers_activos[codigo] = False
+                    if codigo in state["salas"]:
+                        del state["salas"][codigo]
+                    save_state(state)
 
     threading.Thread(target=verificar_salida).start()
 
@@ -1769,83 +1771,84 @@ def handle_enviar_respuestas(data):
         print(f"📋 Respuestas recibidas de {jugador} en sala {codigo}")
 
 def conteo_final(codigo):
-    for s in range(5, 0, -1):
-        socketio.emit("update_timer", {"tiempo": s, "fase": "basta"}, room=codigo)
-        time.sleep(1)
-    
-    results_packet = calcular_puntuaciones(codigo)
-    
-    sala = state["salas"].get(codigo)
-    if not sala: return
-
-    ronda_actual = sala.get("ronda_actual", 1)
-    total_rondas = sala.get("rondas", 1)
-    
-    fin_del_juego = False
-    if ronda_actual >= total_rondas:
-        fin_del_juego = True
-        sala["en_curso"] = False
-        sala["finalizada"] = True  # Marcar partida como finalizada
-    else:
-        sala["ronda_actual"] = ronda_actual + 1
-        sala["en_curso"] = False
-
-    if results_packet:
-        results_packet["fin_del_juego"] = fin_del_juego
+    with app.app_context():
+        for s in range(5, 0, -1):
+            socketio.emit("update_timer", {"tiempo": s, "fase": "basta"}, room=codigo)
+            time.sleep(1)
         
-        # Verificar si todos tienen 0 puntos (no hay ganador)
-        if fin_del_juego:
-            modo_juego = sala.get("modo_juego", "clasico")
-            if modo_juego == "equipos" and results_packet.get("puntuaciones_equipos"):
-                # Verificar equipos
-                todas_puntuaciones = list(results_packet["puntuaciones_equipos"].values())
-                results_packet["sin_ganador"] = all(puntos == 0 for puntos in todas_puntuaciones) and len(todas_puntuaciones) > 0
-            else:
-                # Verificar jugadores individuales
-                todas_puntuaciones = list(results_packet.get("scores_total", {}).values())
-                results_packet["sin_ganador"] = all(puntos == 0 for puntos in todas_puntuaciones) and len(todas_puntuaciones) > 0
+        results_packet = calcular_puntuaciones(codigo)
+        
+        sala = state["salas"].get(codigo)
+        if not sala: return
+
+        ronda_actual = sala.get("ronda_actual", 1)
+        total_rondas = sala.get("rondas", 1)
+        
+        fin_del_juego = False
+        if ronda_actual >= total_rondas:
+            fin_del_juego = True
+            sala["en_curso"] = False
+            sala["finalizada"] = True  # Marcar partida como finalizada
         else:
-            results_packet["sin_ganador"] = False
+            sala["ronda_actual"] = ronda_actual + 1
+            sala["en_curso"] = False
+
+        if results_packet:
+            results_packet["fin_del_juego"] = fin_del_juego
             
-        results_packet["proxima_ronda"] = sala.get("ronda_actual")
+            # Verificar si todos tienen 0 puntos (no hay ganador)
+            if fin_del_juego:
+                modo_juego = sala.get("modo_juego", "clasico")
+                if modo_juego == "equipos" and results_packet.get("puntuaciones_equipos"):
+                    # Verificar equipos
+                    todas_puntuaciones = list(results_packet["puntuaciones_equipos"].values())
+                    results_packet["sin_ganador"] = all(puntos == 0 for puntos in todas_puntuaciones) and len(todas_puntuaciones) > 0
+                else:
+                    # Verificar jugadores individuales
+                    todas_puntuaciones = list(results_packet.get("scores_total", {}).values())
+                    results_packet["sin_ganador"] = all(puntos == 0 for puntos in todas_puntuaciones) and len(todas_puntuaciones) > 0
+            else:
+                results_packet["sin_ganador"] = False
+                
+            results_packet["proxima_ronda"] = sala.get("ronda_actual")
+            
+            # Debug: verificar que las validaciones estén en el packet
+            print(f"📤 Enviando round_results a sala {codigo}")
+            print(f"   • Jugadores: {list(results_packet.get('validaciones_ia', {}).keys())}")
+            print(f"   • Validaciones IA incluidas: {len(results_packet.get('validaciones_ia', {}))} jugadores")
+            print(f"   • Puntos por respuesta incluidos: {len(results_packet.get('puntos_por_respuesta', {}))} jugadores")
+            
+            socketio.emit("round_results", results_packet, room=codigo)
+            print(f"✅ round_results emitido correctamente")
         
-        # Debug: verificar que las validaciones estén en el packet
-        print(f"📤 Enviando round_results a sala {codigo}")
-        print(f"   • Jugadores: {list(results_packet.get('validaciones_ia', {}).keys())}")
-        print(f"   • Validaciones IA incluidas: {len(results_packet.get('validaciones_ia', {}))} jugadores")
-        print(f"   • Puntos por respuesta incluidos: {len(results_packet.get('puntos_por_respuesta', {}))} jugadores")
+        sala["basta_activado"] = False
+        # NO limpiar respuestas_ronda todavía - se necesitan para apelaciones
+        # sala["respuestas_ronda"] = {}
         
-        socketio.emit("round_results", results_packet, room=codigo)
-        print(f"✅ round_results emitido correctamente")
-    
-    sala["basta_activado"] = False
-    # NO limpiar respuestas_ronda todavía - se necesitan para apelaciones
-    # sala["respuestas_ronda"] = {}
-    
-    # El anfitrión siempre se marca como listo automáticamente
-    anfitrion = sala.get("anfitrion")
-    sala["jugadores_listos"] = [anfitrion] if anfitrion else []
-    
-    save_state(state)
-    
-    # Notificar a todos sobre el estado actualizado de jugadores listos
-    socketio.emit("player_joined", {
-        "jugadores": sala["jugadores"],
-        "puntuaciones": sala.get("puntuaciones", {}),
-        "jugadores_listos": sala.get("jugadores_listos", []),
-        "jugadores_desconectados": sala.get("jugadores_desconectados", []),
-        "configuracion": {
-            "rondas": sala.get("rondas", 3),
-            "dificultad": sala.get("dificultad", "normal"),
-            "modo_juego": sala.get("modo_juego", "clasico"),
-            "chat_habilitado": sala.get("chat_habilitado", True),
-            "sonidos_habilitados": sala.get("sonidos_habilitados", True),
-            "powerups_habilitados": sala.get("powerups_habilitados", True),
-            "validacion_activa": sala.get("validacion_activa", True)
-        }
-    }, room=codigo)
-    
-    emit_admin_log(f"🏁 Ronda {ronda_actual} terminada", "game", codigo)
+        # El anfitrión siempre se marca como listo automáticamente
+        anfitrion = sala.get("anfitrion")
+        sala["jugadores_listos"] = [anfitrion] if anfitrion else []
+        
+        save_state(state)
+        
+        # Notificar a todos sobre el estado actualizado de jugadores listos
+        socketio.emit("player_joined", {
+            "jugadores": sala["jugadores"],
+            "puntuaciones": sala.get("puntuaciones", {}),
+            "jugadores_listos": sala.get("jugadores_listos", []),
+            "jugadores_desconectados": sala.get("jugadores_desconectados", []),
+            "configuracion": {
+                "rondas": sala.get("rondas", 3),
+                "dificultad": sala.get("dificultad", "normal"),
+                "modo_juego": sala.get("modo_juego", "clasico"),
+                "chat_habilitado": sala.get("chat_habilitado", True),
+                "sonidos_habilitados": sala.get("sonidos_habilitados", True),
+                "powerups_habilitados": sala.get("powerups_habilitados", True),
+                "validacion_activa": sala.get("validacion_activa", True)
+            }
+        }, room=codigo)
+        
+        emit_admin_log(f"🏁 Ronda {ronda_actual} terminada", "game", codigo)
 
 
 # ==========================================================
