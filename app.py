@@ -1167,6 +1167,83 @@ def create_room_route():
         return jsonify({"ok": False, "error": str(e)}), 400
 
 
+@app.route("/recreate_room", methods=["POST"])
+def recreate_room_route():
+    """Crear una nueva sala con las mismas configuraciones de una sala finalizada"""
+    try:
+        data = request.get_json()
+        codigo_anterior = data.get("codigo_anterior")
+        nombre_anfitrion = data.get("nombre")
+        
+        sala_anterior = state["salas"].get(codigo_anterior)
+        if not sala_anterior:
+            return jsonify({"ok": False, "error": "Sala anterior no encontrada"}), 404
+        
+        # Validar que el nombre sea el anfitrión
+        if nombre_anfitrion != sala_anterior.get("anfitrion"):
+            return jsonify({"ok": False, "error": "Solo el anfitrión puede recrear la sala"}), 403
+        
+        # Crear nueva sala con las mismas configuraciones
+        codigo_nuevo = generar_codigo()
+        
+        # Copiar configuraciones de la sala anterior
+        global player_id_counter
+        player_id_counter += 1
+        anfitrion_id = f"P{player_id_counter:06d}"
+        
+        state["salas"][codigo_nuevo] = {
+            "anfitrion": nombre_anfitrion,
+            "jugadores": [nombre_anfitrion],
+            "rondas": sala_anterior.get("rondas", 3),
+            "estado": "espera",
+            "puntuaciones": {nombre_anfitrion: 0},
+            "respuestas_ronda": {},
+            "ronda_actual": 1,
+            "jugadores_listos": [nombre_anfitrion],
+            "jugadores_desconectados": [],
+            "jugadores_ids": {nombre_anfitrion: anfitrion_id},
+            "ids_jugadores": {anfitrion_id: nombre_anfitrion},
+            "dificultad": sala_anterior.get("dificultad", "normal"),
+            "modo_juego": sala_anterior.get("modo_juego", "clasico"),
+            "categorias": sala_anterior.get("categorias", []),
+            "categorias_personalizadas": sala_anterior.get("categorias_personalizadas"),
+            "powerups_habilitados": sala_anterior.get("powerups_habilitados", True),
+            "chat_habilitado": sala_anterior.get("chat_habilitado", True),
+            "sonidos_habilitados": sala_anterior.get("sonidos_habilitados", True),
+            "validacion_activa": sala_anterior.get("validacion_activa", True),
+            "equipos": {},
+            "puntuaciones_equipos": {},
+            "mensajes_chat": [],
+            "powerups_jugadores": {nombre_anfitrion: {"tiempo_extra": 0, "pista": 0, "cambiar_letra": 0, "escudo": 0, "doble_puntos": 0}},
+            "respuestas_cuestionadas": {},
+            "votos_validacion": {},
+            "penalizaciones": {nombre_anfitrion: 0},
+            "finalizada": False,
+            "pausada": False,
+            "sala_anterior": codigo_anterior  # Guardar referencia a la sala anterior
+        }
+        
+        save_state(state)
+        
+        # Guardar mapeo de sala anterior a nueva sala para que otros jugadores puedan unirse
+        if "salas_recreadas" not in state:
+            state["salas_recreadas"] = {}
+        state["salas_recreadas"][codigo_anterior] = codigo_nuevo
+        save_state(state)
+        
+        # Obtener IP y dispositivo para el log
+        ip = get_client_ip()
+        user_agent = request.headers.get('User-Agent', '')
+        dispositivo_info = parse_user_agent(user_agent)
+        
+        emit_admin_log(f"🔄 Sala recreada | Anfitrión: {nombre_anfitrion} | Sala anterior: {codigo_anterior} → Nueva: {codigo_nuevo}", "info", codigo_nuevo, ip=ip, dispositivo_info=dispositivo_info)
+        
+        return jsonify({"codigo": codigo_nuevo, "ok": True})
+    except Exception as e:
+        print(f"❌ Error al recrear sala: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+
 @app.route("/join_room", methods=["POST"])
 def join_room_route():
     try:
@@ -1358,6 +1435,7 @@ def game(codigo):
 
     return render_template("game.html",
                            jugador=sala["anfitrion"],
+                           anfitrion=sala["anfitrion"],
                            codigo=codigo,
                            ronda=sala.get("ronda_actual", 1),
                            total_rondas=sala.get("rondas", 1),
@@ -1779,6 +1857,36 @@ def handle_enviar_respuestas(data):
         sala["respuestas_ronda"][jugador] = respuestas
         save_state(state)
         print(f"📋 Respuestas recibidas de {jugador} en sala {codigo}")
+
+@socketio.on("anfitrion_recrear_sala")
+def handle_anfitrion_recrear_sala(data):
+    """Manejar cuando el anfitrión quiere recrear la sala"""
+    codigo_anterior = data.get("codigo_anterior")
+    nombre_anfitrion = data.get("nombre")
+    
+    sala_anterior = state["salas"].get(codigo_anterior)
+    if not sala_anterior:
+        socketio.emit("error_recrear_sala", {"mensaje": "Sala anterior no encontrada"}, room=request.sid)
+        return
+    
+    if nombre_anfitrion != sala_anterior.get("anfitrion"):
+        socketio.emit("error_recrear_sala", {"mensaje": "No tienes permiso para recrear esta sala"}, room=request.sid)
+        return
+    
+    # Verificar si ya existe una sala recreada
+    codigo_nuevo = state.get("salas_recreadas", {}).get(codigo_anterior)
+    if not codigo_nuevo:
+        socketio.emit("error_recrear_sala", {"mensaje": "La nueva sala aún no ha sido creada"}, room=request.sid)
+        return
+    
+    # Notificar a todos los jugadores de la sala anterior que hay una nueva sala
+    socketio.emit("nueva_sala_disponible", {
+        "codigo_nuevo": codigo_nuevo,
+        "codigo_anterior": codigo_anterior,
+        "anfitrion": nombre_anfitrion
+    }, room=codigo_anterior)
+    
+    print(f"🔄 Anfitrión {nombre_anfitrion} recreó sala {codigo_anterior} → {codigo_nuevo}")
 
 def conteo_final(codigo):
     with app.app_context():

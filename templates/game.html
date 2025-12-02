@@ -277,6 +277,7 @@
 <script>
     const jugador = localStorage.getItem("jugador");
     const codigo = "{{ codigo }}";
+    const anfitrion = "{{ anfitrion }}";
     const total_rondas = {{ total_rondas }};
     const powerupsHabilitados = {{ powerups_habilitados|tojson }};
     const chatHabilitado = {{ chat_habilitado|tojson }};
@@ -331,6 +332,12 @@
     // Usar jugadorRecuperado si está disponible, sino usar jugador
     const jugadorFinal = jugadorRecuperado || jugador;
     jugadorNombre.textContent = jugadorFinal;
+    
+    // Detectar si el jugador actual es el anfitrión
+    const esAnfitrion = (jugadorFinal === anfitrion);
+    
+    // Variable para almacenar el código de la nueva sala (si existe)
+    let codigoNuevaSala = null;
     
     let apelacionesUsadas = new Set();
     const MAX_APELACIONES = 2;
@@ -758,6 +765,13 @@
         }
         document.getElementById('validando-overlay').style.display = 'none';
         mostrarResultados(data);
+        
+        // Si es el fin del juego, mostrar ventana especial después de mostrar resultados
+        if (data.fin_del_juego) {
+            setTimeout(() => {
+                mostrarVentanaJugarOtraVez();
+            }, 2000); // Esperar 2 segundos después de mostrar resultados
+        }
     });
     
     socket.on("nuevo_anfitrion", data => {
@@ -766,9 +780,34 @@
         
         mostrarNotificacion(mensaje);
         
-        if (nuevoAnfitrion === jugador) {
+        if (nuevoAnfitrion === jugadorFinal) {
             mostrarNotificacion("🎉 ¡Ahora eres el anfitrión de la sala!");
         }
+    });
+    
+    // Escuchar cuando hay una nueva sala disponible (para jugadores)
+    socket.on("nueva_sala_disponible", data => {
+        if (!esAnfitrion) {
+            // Guardar el código de la nueva sala
+            codigoNuevaSala = data.codigo_nuevo;
+            
+            const juegoFinalizadoMsg = document.getElementById('juego-finalizado-msg');
+            const mensaje = juegoFinalizadoMsg.querySelector('h3');
+            const jugarBtn = document.getElementById('jugar-de-nuevo-btn');
+            
+            if (mensaje) {
+                mensaje.textContent = '🎮 ¿Quieres jugar otra vez?';
+            }
+            jugarBtn.style.display = 'block';
+            jugarBtn.textContent = '🔄 Sí, jugar de nuevo';
+            
+            mostrarNotificacion("🎉 ¡El anfitrión ha creado una nueva partida!");
+        }
+    });
+    
+    // Escuchar errores al recrear sala
+    socket.on("error_recrear_sala", data => {
+        mostrarNotificacion(`❌ ${data.mensaje}`);
     });
     
     // Validación
@@ -1217,7 +1256,7 @@
                     btnContinuarModal.textContent = '🎉 Ver pantalla final';
                     btnContinuarModal.onclick = () => {
                         resultadosModal.style.display = 'none';
-                        document.getElementById('juego-finalizado-msg').style.display = 'flex';
+                        mostrarVentanaJugarOtraVez();
                     };
                 } else {
                     btnContinuarModal.textContent = 'Siguiente Ronda ➡️';
@@ -1312,10 +1351,77 @@
     // Hacer la función disponible globalmente para onclick inline
     window.votarApelacion = votarApelacion;
 
-    function volverASala() {
+    // Nueva función para mostrar ventana según si es anfitrión o no
+    function mostrarVentanaJugarOtraVez() {
+        const juegoFinalizadoMsg = document.getElementById('juego-finalizado-msg');
+        const mensaje = juegoFinalizadoMsg.querySelector('h3');
+        const jugarBtn = document.getElementById('jugar-de-nuevo-btn');
+        const salirBtn = document.getElementById('salir-btn');
+        
+        if (esAnfitrion) {
+            // Anfitrión: puede crear nueva sala
+            if (mensaje) {
+                mensaje.textContent = '🎮 ¿Quieres jugar otra vez?';
+            }
+            jugarBtn.style.display = 'block';
+            jugarBtn.textContent = '🔄 Sí, jugar de nuevo';
+            salirBtn.style.display = 'block';
+        } else {
+            // Jugador: esperar a que el anfitrión decida
+            if (mensaje) {
+                mensaje.textContent = '⏳ Esperando decisión del anfitrión...';
+            }
+            jugarBtn.style.display = 'none';
+            salirBtn.style.display = 'block';
+        }
+        
+        juegoFinalizadoMsg.style.display = 'flex';
+    }
+    
+    async function volverASala() {
         // Desactivar advertencia antes de redirigir (es una acción intencional)
         advertenciaActiva = false;
-        window.location.href = `/waiting/${codigo}`;
+        
+        if (esAnfitrion) {
+            // Anfitrión: crear nueva sala
+            try {
+                const res = await fetch("/recreate_room", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        codigo_anterior: codigo,
+                        nombre: jugadorFinal
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.ok) {
+                    // Notificar a otros jugadores
+                    socket.emit("anfitrion_recrear_sala", {
+                        codigo_anterior: codigo,
+                        nombre: jugadorFinal
+                    });
+                    
+                    // Redirigir a la nueva sala
+                    localStorage.setItem("codigo", data.codigo);
+                    window.location.href = `/waiting/${data.codigo}`;
+                } else {
+                    mostrarNotificacion(`❌ Error: ${data.error}`);
+                }
+            } catch (error) {
+                mostrarNotificacion("❌ Error al crear nueva sala");
+                console.error(error);
+            }
+        } else {
+            // Jugador normal: unirse a nueva sala si existe, sino a la anterior
+            if (codigoNuevaSala) {
+                localStorage.setItem("codigo", codigoNuevaSala);
+                window.location.href = `/waiting/${codigoNuevaSala}`;
+            } else {
+                window.location.href = `/waiting/${codigo}`;
+            }
+        }
     }
     
     function volverAlMenu() {
