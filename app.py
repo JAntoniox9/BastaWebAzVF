@@ -2185,13 +2185,46 @@ def handle_basta(data):
         }, room=request.sid)
         emit_admin_log(f"⚠️ BASTA rechazado: solo {campos_llenos}/{CAMPOS_MINIMOS} campos llenos", "error", codigo)
         return
+    
+    # VALIDACIÓN INTELIGENTE: Verificar que al menos 3 campos tengan respuestas VÁLIDAS según IA
+    letra = sala.get("letra", "").upper()
+    categorias = sala.get("categorias", [])
+    campos_validos = 0
+    campos_invalidos = []
+    
+    print(f"🔍 Validando {campos_llenos} respuestas de {jugador} antes de permitir BASTA...")
+    
+    for categoria in categorias:
+        respuesta = respuestas.get(categoria, "").strip()
+        if respuesta:
+            # Validar con IA si la respuesta es coherente con la categoría
+            es_valida, razon, confianza = validar_palabra_individual_con_ia(respuesta, categoria, letra)
+            
+            if es_valida:
+                campos_validos += 1
+                print(f"  ✅ '{respuesta}' válida para {categoria}")
+            else:
+                campos_invalidos.append(f"{categoria}: '{respuesta}' ({razon})")
+                print(f"  ❌ '{respuesta}' inválida para {categoria}: {razon}")
+    
+    # Requiere al menos 3 campos VÁLIDOS (no solo llenos)
+    if campos_validos < CAMPOS_MINIMOS:
+        razones_texto = "; ".join(campos_invalidos[:2])  # Mostrar primeras 2 razones
+        socketio.emit("basta_rechazado", {
+            "mensaje": f"❌ Necesitas {CAMPOS_MINIMOS} respuestas VÁLIDAS para presionar ¡BASTA! Válidas: {campos_validos}/{campos_llenos}. {razones_texto}",
+            "segundos_restantes": 0
+        }, room=request.sid)
+        emit_admin_log(f"⚠️ BASTA rechazado: solo {campos_validos}/{CAMPOS_MINIMOS} campos VÁLIDOS (tenía {campos_llenos} llenos)", "error", codigo)
+        return
+    
+    print(f"✅ Validación exitosa: {campos_validos} campos válidos de {campos_llenos} llenos")
 
     if sala and not sala.get("basta_activado", False):
         sala["basta_activado"] = True
         save_state(state)
         timers_activos[codigo] = False
-        emit_admin_log(f"✋ ¡BASTA! presionado por {jugador} ({campos_llenos} campos)", "game", codigo)
-        socketio.emit("basta_triggered", {"motivo": f"{jugador} presionó ¡BASTA!"}, room=codigo)
+        emit_admin_log(f"✋ ¡BASTA! presionado por {jugador} ({campos_validos} campos válidos de {campos_llenos})", "game", codigo)
+        socketio.emit("basta_triggered", {"motivo": f"{jugador} presionó ¡BASTA! con {campos_validos} respuestas válidas"}, room=codigo)
         threading.Thread(target=conteo_final, args=(codigo,)).start()
     else:
         print(f"⚠️ ¡BASTA! ignorado: ya había sido activado para sala {codigo}")

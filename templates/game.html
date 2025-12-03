@@ -26,6 +26,12 @@
             padding: clamp(10px, 1.5vw, 20px);
             align-items: flex-start;
         }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
@@ -640,7 +646,7 @@
         }
     }
     
-    function mostrarNotificacion(mensaje) {
+    function mostrarNotificacion(mensaje, duracion = 3000) {
         const notif = document.createElement('div');
         notif.textContent = mensaje;
         notif.style.cssText = `
@@ -656,9 +662,11 @@
             z-index: 10000;
             font-weight: 600;
             animation: slideDown 0.3s ease-out;
+            max-width: 90%;
+            text-align: center;
         `;
         document.body.appendChild(notif);
-        setTimeout(() => notif.remove(), 3000);
+        setTimeout(() => notif.remove(), duracion);
     }
     
     // Socket events
@@ -1113,10 +1121,22 @@
     }
     
     socket.on("basta_rechazado", (data) => {
-        mostrarNotificacion(data.mensaje);
+        // Mostrar notificación más prominente
+        const esValidacion = data.mensaje.includes('VÁLIDAS');
+        const duracion = esValidacion ? 8000 : 5000; // Más tiempo para mensajes de validación
+        
+        mostrarNotificacion(data.mensaje, duracion);
+        
         if (data.segundos_restantes > 0) {
             iniciarCooldownBasta(data.segundos_restantes);
         }
+        
+        // Efecto visual de shake en el botón
+        bastaBtn.style.animation = 'shake 0.5s';
+        setTimeout(() => {
+            bastaBtn.style.animation = '';
+        }, 500);
+        
         if (typeof soundSystem !== 'undefined') {
             soundSystem.playError();
         }
@@ -1144,7 +1164,7 @@
             bastaBtn.disabled = true;
             bastaBtn.style.opacity = '0.6';
             bastaBtn.style.cursor = 'not-allowed';
-            bastaBtn.innerHTML = `<span style="font-size: 0.85em;">🛑 BASTA (${camposLlenos}/${CAMPOS_MINIMOS} campos)</span>`;
+            bastaBtn.innerHTML = `<span style="font-size: 0.85em;">🛑 BASTA (${camposLlenos}/${CAMPOS_MINIMOS} respuestas válidas)</span>`;
         } else {
             if (!bastaBtn.classList.contains('activado')) {
                 bastaBtn.disabled = false;
