@@ -1211,6 +1211,37 @@ def calcular_puntuaciones(codigo):
     jugadores = list(sala.get("puntuaciones", {}).keys())
     if not jugadores:
          jugadores = sala.get("jugadores", [])
+    
+    # VALIDACIÓN ESPECIAL: Verificar si el jugador que presionó BASTA tenía respuestas válidas
+    jugador_basta = sala.get("jugador_basta")
+    respuestas_basta = sala.get("respuestas_basta", {})
+    penalizacion_basta = False
+    
+    if jugador_basta and respuestas_basta:
+        print(f"🔍 Validando respuestas del jugador que presionó BASTA: {jugador_basta}")
+        campos_validos_basta = 0
+        
+        for categoria, respuesta in respuestas_basta.items():
+            respuesta_limpia = str(respuesta).strip()
+            if respuesta_limpia and len(respuesta_limpia) >= 2:
+                es_valida, razon, confianza = validar_palabra_individual_con_ia(respuesta_limpia, categoria, letra)
+                if es_valida:
+                    campos_validos_basta += 1
+                    print(f"  ✅ '{respuesta_limpia}' válida para {categoria}")
+                else:
+                    print(f"  ❌ '{respuesta_limpia}' inválida para {categoria}: {razon}")
+        
+        # Si no tiene al menos 3 respuestas válidas, penalizar
+        if campos_validos_basta < 3:
+            penalizacion_basta = True
+            print(f"⚠️ {jugador_basta} presionó BASTA sin 3 respuestas válidas (solo {campos_validos_basta}). Será penalizado.")
+            socketio.emit("jugador_penalizado_basta", {
+                "jugador": jugador_basta,
+                "razon": f"Presionó BASTA con solo {campos_validos_basta} respuestas válidas (necesita 3)",
+                "penalizacion": -50
+            }, room=codigo)
+        else:
+            print(f"✅ {jugador_basta} tenía {campos_validos_basta} respuestas válidas. BASTA aceptado.")
              
     puntuaciones_ronda = {jugador: 0 for jugador in jugadores}
     
@@ -1341,10 +1372,13 @@ def calcular_puntuaciones(codigo):
             sala["powerups_jugadores"][jugador]["multiplicador"] += 1
             powerups_ganados[jugador].append("multiplicador")
             print(f"💎 {jugador} ganó Multiplicador x2 (100% respuestas únicas - {respuestas_unicas}/{respuestas_totales})")
-        
-    sala["puntuaciones"] = puntuaciones_totales
     
-    # 4. Si el modo es EQUIPOS, calcular puntuaciones de equipos
+    # Aplicar penalización si el jugador que presionó BASTA no tenía respuestas válidas
+    if penalizacion_basta and jugador_basta in puntuaciones_totales:
+        puntuaciones_totales[jugador_basta] = max(0, puntuaciones_totales[jugador_basta] - 50)
+        print(f"⚠️ Penalización aplicada a {jugador_basta}: -50 puntos")
+    
+    sala["puntuaciones"] = puntuaciones_totales    # 4. Si el modo es EQUIPOS, calcular puntuaciones de equipos
     modo_juego = sala.get("modo_juego", "clasico")
     puntuaciones_equipos = {}
     equipos = sala.get("equipos", {})
@@ -2186,45 +2220,44 @@ def handle_basta(data):
         emit_admin_log(f"⚠️ BASTA rechazado: solo {campos_llenos}/{CAMPOS_MINIMOS} campos llenos", "error", codigo)
         return
     
-    # VALIDACIÓN INTELIGENTE: Verificar que al menos 3 campos tengan respuestas VÁLIDAS según IA
+    # VALIDACIÓN RÁPIDA: Verificar que no sean respuestas obviamente inválidas (muy cortas, solo números, etc.)
     letra = sala.get("letra", "").upper()
-    categorias = sala.get("categorias", [])
-    campos_validos = 0
-    campos_invalidos = []
+    respuestas_sospechosas = []
     
-    print(f"🔍 Validando {campos_llenos} respuestas de {jugador} antes de permitir BASTA...")
+    for categoria, respuesta in respuestas.items():
+        respuesta_limpia = str(respuesta).strip()
+        if respuesta_limpia:
+            # Validaciones básicas rápidas (sin IA)
+            if len(respuesta_limpia) < 2:
+                respuestas_sospechosas.append(f"{categoria}: muy corta")
+            elif respuesta_limpia.isdigit():
+                respuestas_sospechosas.append(f"{categoria}: solo números")
+            elif len(set(respuesta_limpia.lower())) <= 2:  # Ej: "aaaa", "zzzz"
+                respuestas_sospechosas.append(f"{categoria}: caracteres repetidos")
+            elif not respuesta_limpia[0].upper() == letra and letra:
+                respuestas_sospechosas.append(f"{categoria}: no empieza con '{letra}'")
     
-    for categoria in categorias:
-        respuesta = respuestas.get(categoria, "").strip()
-        if respuesta:
-            # Validar con IA si la respuesta es coherente con la categoría
-            es_valida, razon, confianza = validar_palabra_individual_con_ia(respuesta, categoria, letra)
-            
-            if es_valida:
-                campos_validos += 1
-                print(f"  ✅ '{respuesta}' válida para {categoria}")
-            else:
-                campos_invalidos.append(f"{categoria}: '{respuesta}' ({razon})")
-                print(f"  ❌ '{respuesta}' inválida para {categoria}: {razon}")
-    
-    # Requiere al menos 3 campos VÁLIDOS (no solo llenos)
-    if campos_validos < CAMPOS_MINIMOS:
-        razones_texto = "; ".join(campos_invalidos[:2])  # Mostrar primeras 2 razones
+    # Si hay más de 3 respuestas sospechosas, rechazar inmediatamente
+    if len(respuestas_sospechosas) > (campos_llenos - CAMPOS_MINIMOS):
+        razones_texto = "; ".join(respuestas_sospechosas[:2])
         socketio.emit("basta_rechazado", {
-            "mensaje": f"❌ Necesitas {CAMPOS_MINIMOS} respuestas VÁLIDAS para presionar ¡BASTA! Válidas: {campos_validos}/{campos_llenos}. {razones_texto}",
+            "mensaje": f"❌ Respuestas inválidas detectadas: {razones_texto}",
             "segundos_restantes": 0
         }, room=request.sid)
-        emit_admin_log(f"⚠️ BASTA rechazado: solo {campos_validos}/{CAMPOS_MINIMOS} campos VÁLIDOS (tenía {campos_llenos} llenos)", "error", codigo)
+        emit_admin_log(f"⚠️ BASTA rechazado: respuestas sospechosas ({len(respuestas_sospechosas)})", "error", codigo)
         return
     
-    print(f"✅ Validación exitosa: {campos_validos} campos válidos de {campos_llenos} llenos")
-
+    # Si pasó las validaciones básicas, ACTIVAR BASTA inmediatamente
+    # La validación completa con IA se hará durante el conteo final (asíncrona)
     if sala and not sala.get("basta_activado", False):
         sala["basta_activado"] = True
+        # Guardar las respuestas del jugador que presionó BASTA para validación posterior
+        sala["jugador_basta"] = jugador
+        sala["respuestas_basta"] = respuestas
         save_state(state)
         timers_activos[codigo] = False
-        emit_admin_log(f"✋ ¡BASTA! presionado por {jugador} ({campos_validos} campos válidos de {campos_llenos})", "game", codigo)
-        socketio.emit("basta_triggered", {"motivo": f"{jugador} presionó ¡BASTA! con {campos_validos} respuestas válidas"}, room=codigo)
+        emit_admin_log(f"✋ ¡BASTA! presionado por {jugador} ({campos_llenos} campos)", "game", codigo)
+        socketio.emit("basta_triggered", {"motivo": f"{jugador} presionó ¡BASTA!"}, room=codigo)
         threading.Thread(target=conteo_final, args=(codigo,)).start()
     else:
         print(f"⚠️ ¡BASTA! ignorado: ya había sido activado para sala {codigo}")

@@ -850,6 +850,23 @@
         
         document.getElementById('validando-overlay').style.display = 'flex';
     });
+    
+    socket.on("jugador_penalizado_basta", (data) => {
+        // Mostrar notificación de penalización
+        const mensaje = `⚠️ ${data.jugador} fue penalizado: ${data.razon} (${data.penalizacion} puntos)`;
+        mostrarNotificacion(mensaje, 10000);
+        
+        // Si soy el penalizado, mostrar alerta adicional
+        if (data.jugador === jugadorFinal) {
+            setTimeout(() => {
+                alert(`❌ PENALIZACIÓN\n\n${data.razon}\n\nPenalización: ${data.penalizacion} puntos\n\n⚠️ Asegúrate de tener al menos 3 respuestas VÁLIDAS antes de presionar BASTA.`);
+            }, 1000);
+        }
+        
+        if (typeof soundSystem !== 'undefined') {
+            soundSystem.playError();
+        }
+    });
 
     socket.on("round_results", data => {
         if (data.fin_del_juego) {
