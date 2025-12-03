@@ -3,6 +3,7 @@ monkey.patch_all()
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_socketio import SocketIO, join_room, emit
 import random, string, json, os, threading, time, hashlib, hmac, base64, re, unicodedata
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -1132,8 +1133,8 @@ Responde SOLO con JSON válido, sin texto adicional:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.1,  # Más bajo = más consistente y estricto
-                max_tokens=100,
-                timeout=8
+                max_tokens=80,  # Reducido de 100 a 80 para respuestas más rápidas
+                timeout=4  # Reducido de 8 a 4 segundos
             )
             
             resultado_texto = response.choices[0].message.content.strip()
@@ -1219,17 +1220,32 @@ def calcular_puntuaciones(codigo):
     
     if jugador_basta and respuestas_basta:
         print(f"🔍 Validando respuestas del jugador que presionó BASTA: {jugador_basta}")
-        campos_validos_basta = 0
         
+        # Validar en paralelo también
+        tareas_basta = []
         for categoria, respuesta in respuestas_basta.items():
             respuesta_limpia = str(respuesta).strip()
             if respuesta_limpia and len(respuesta_limpia) >= 2:
-                es_valida, razon, confianza = validar_palabra_individual_con_ia(respuesta_limpia, categoria, letra)
-                if es_valida:
-                    campos_validos_basta += 1
-                    print(f"  ✅ '{respuesta_limpia}' válida para {categoria}")
-                else:
-                    print(f"  ❌ '{respuesta_limpia}' inválida para {categoria}: {razon}")
+                tareas_basta.append({
+                    'categoria': categoria,
+                    'respuesta': respuesta_limpia
+                })
+        
+        def validar_basta_tarea(tarea):
+            es_valida, razon, confianza = validar_palabra_individual_con_ia(
+                tarea['respuesta'], tarea['categoria'], letra
+            )
+            return es_valida
+        
+        campos_validos_basta = 0
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(validar_basta_tarea, tarea) for tarea in tareas_basta]
+            for future in as_completed(futures):
+                try:
+                    if future.result():
+                        campos_validos_basta += 1
+                except Exception as e:
+                    print(f"⚠️ Error validando respuesta BASTA: {e}")
         
         # Si no tiene al menos 3 respuestas válidas, penalizar
         if campos_validos_basta < 3:
@@ -1246,10 +1262,16 @@ def calcular_puntuaciones(codigo):
     puntuaciones_ronda = {jugador: 0 for jugador in jugadores}
     
     # 1. VALIDAR CON IA primero y agrupar respuestas válidas por categoría
+    # OPTIMIZACIÓN: Validar en paralelo usando ThreadPoolExecutor + Cache de respuestas duplicadas
     respuestas_validas_por_categoria = {}
     validaciones_ia = {}  # Almacenar resultados de IA para mostrar en UI
+    cache_validaciones = {}  # Cache para respuestas duplicadas
     
-    print(f"🔍 Iniciando validación de {len(respuestas_por_jugador)} jugadores con letra '{letra}'")
+    print(f"🔍 Iniciando validación PARALELA de {len(respuestas_por_jugador)} jugadores con letra '{letra}'")
+    
+    # Recopilar todas las validaciones a realizar (deduplicadas)
+    tareas_validacion = []
+    respuestas_unicas = set()
     
     for jugador, respuestas in respuestas_por_jugador.items():
         if jugador not in jugadores: continue
@@ -1257,31 +1279,102 @@ def calcular_puntuaciones(codigo):
         
         for categoria, respuesta in respuestas.items():
             respuesta_limpia = respuesta.strip()
-            
             if respuesta_limpia and len(respuesta_limpia) >= 2:
-                # VALIDAR CON IA
-                print(f"🤖 Validando: {jugador} - {categoria}: '{respuesta_limpia}'")
-                es_valida_ia, razon_ia, confianza_ia = validar_respuesta_con_ia(
-                    respuesta_limpia, categoria, letra
-                )
+                # Crear clave única para cachear
+                clave_cache = f"{categoria}:{respuesta_limpia.upper()}"
                 
-                # Guardar resultado de validación IA
-                validaciones_ia[jugador][categoria] = {
+                # Solo agregar si no se ha visto antes (evitar duplicados)
+                if clave_cache not in respuestas_unicas:
+                    respuestas_unicas.add(clave_cache)
+                    tareas_validacion.append({
+                        'jugador': jugador,
+                        'categoria': categoria,
+                        'respuesta': respuesta_limpia,
+                        'clave_cache': clave_cache
+                    })
+    
+    print(f"   → {len(tareas_validacion)} respuestas únicas de {sum(len(r) for r in respuestas_por_jugador.values())} totales")
+    
+    # Función auxiliar para validar una respuesta
+    def validar_tarea(tarea):
+        categoria = tarea['categoria']
+        respuesta = tarea['respuesta']
+        clave_cache = tarea['clave_cache']
+        
+        es_valida_ia, razon_ia, confianza_ia = validar_respuesta_con_ia(
+            respuesta, categoria, letra
+        )
+        
+        return {
+            'clave_cache': clave_cache,
+            'categoria': categoria,
+            'respuesta': respuesta,
+            'es_valida_ia': es_valida_ia,
+            'razon_ia': razon_ia,
+            'confianza_ia': confianza_ia
+        }
+    
+    # Ejecutar validaciones en paralelo (máximo 10 threads simultáneos)
+    tiempo_inicio = time.time()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        # Enviar todas las tareas
+        futures = {executor.submit(validar_tarea, tarea): tarea for tarea in tareas_validacion}
+        
+        # Procesar resultados conforme vayan llegando
+        for future in as_completed(futures):
+            try:
+                resultado = future.result()
+                clave_cache = resultado['clave_cache']
+                categoria = resultado['categoria']
+                respuesta = resultado['respuesta']
+                es_valida_ia = resultado['es_valida_ia']
+                razon_ia = resultado['razon_ia']
+                confianza_ia = resultado['confianza_ia']
+                
+                # Guardar en cache
+                cache_validaciones[clave_cache] = {
                     "validada_ia": es_valida_ia,
                     "razon_ia": razon_ia,
                     "confianza": confianza_ia,
-                    "apelable": confianza_ia < 0.9  # Baja confianza = permitir apelación
+                    "apelable": confianza_ia < 0.9
                 }
                 
-                print(f"   → Resultado: {'✓ Válida' if es_valida_ia else '✗ Inválida'} - {razon_ia}")
-                
-                # Solo agregar a válidas si IA aprueba Y empieza con letra correcta
-                respuesta_upper = respuesta_limpia.strip().upper()
+                # Agregar a válidas si IA aprueba
+                respuesta_upper = respuesta.strip().upper()
                 if es_valida_ia and respuesta_upper.startswith(letra):
                     if categoria not in respuestas_validas_por_categoria:
                         respuestas_validas_por_categoria[categoria] = []
                     respuestas_validas_por_categoria[categoria].append(respuesta_upper)
-            else:
+                    
+            except Exception as e:
+                print(f"⚠️ Error validando: {e}")
+                tarea = futures[future]
+                cache_validaciones[tarea['clave_cache']] = {
+                    "validada_ia": False,
+                    "razon_ia": f"Error de validación: {str(e)[:50]}",
+                    "confianza": 0.5,
+                    "apelable": True
+                }
+    
+    # Aplicar resultados cacheados a todos los jugadores
+    for jugador, respuestas in respuestas_por_jugador.items():
+        if jugador not in jugadores: continue
+        
+        for categoria, respuesta in respuestas.items():
+            respuesta_limpia = respuesta.strip()
+            if respuesta_limpia and len(respuesta_limpia) >= 2:
+                clave_cache = f"{categoria}:{respuesta_limpia.upper()}"
+                if clave_cache in cache_validaciones:
+                    validaciones_ia[jugador][categoria] = cache_validaciones[clave_cache]
+    
+    tiempo_total = time.time() - tiempo_inicio
+    print(f"✅ Validación paralela completada en {tiempo_total:.2f} segundos ({len(tareas_validacion)} validaciones únicas)")
+    
+    # Procesar respuestas vacías o muy cortas (las que no se validaron)
+    for jugador, respuestas in respuestas_por_jugador.items():
+        if jugador not in jugadores: continue
+        for categoria, respuesta in respuestas.items():
+            if categoria not in validaciones_ia[jugador]:
                 # Respuesta vacía o muy corta
                 validaciones_ia[jugador][categoria] = {
                     "validada_ia": False,
@@ -1289,7 +1382,6 @@ def calcular_puntuaciones(codigo):
                     "confianza": 1.0,
                     "apelable": False
                 }
-                print(f"   → Respuesta vacía o muy corta")
 
     # 2. Calcular puntos para cada jugador
     modo_juego = sala.get("modo_juego", "clasico")
