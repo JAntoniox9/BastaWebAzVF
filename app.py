@@ -2326,6 +2326,23 @@ def conteo_final(codigo):
         anfitrion = sala.get("anfitrion")
         sala["jugadores_listos"] = [anfitrion] if anfitrion else []
         
+        # Limpiar lista de jugadores desconectados al iniciar nueva ronda
+        # Solo mantener aquellos que realmente NO tienen una conexión activa
+        jugadores_realmente_desconectados = []
+        for jugador_desc in sala.get("jugadores_desconectados", []):
+            # Verificar si el jugador tiene algún socket activo
+            tiene_conexion_activa = False
+            for sid_activo, nombre_activo in sid_to_name.items():
+                if nombre_activo == jugador_desc and sid_to_room.get(sid_activo) == codigo:
+                    tiene_conexion_activa = True
+                    break
+            
+            # Si no tiene conexión activa, mantenerlo en la lista de desconectados
+            if not tiene_conexion_activa:
+                jugadores_realmente_desconectados.append(jugador_desc)
+        
+        sala["jugadores_desconectados"] = jugadores_realmente_desconectados
+        
         save_state(state)
         
         # Notificar a todos sobre el estado actualizado de jugadores listos
