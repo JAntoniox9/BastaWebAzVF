@@ -528,6 +528,46 @@ def crear_equipos_automaticamente(sala):
     print(f"✅ Equipos creados: Equipo A: {equipo_a}, Equipo B: {equipo_b}")
 
 # ========================================================== 
+# SELECCIÓN INTELIGENTE DE LETRAS
+# ========================================================== 
+def seleccionar_letra_aleatoria(sala):
+    """
+    Selecciona una letra aleatoria sin repetir las ya usadas en la partida.
+    Excluye letras difíciles como Ñ, K, W, X, Y, Z.
+    """
+    # Letras excluidas por ser muy difíciles o tener pocas soluciones
+    letras_excluidas = {'Ñ', 'K', 'W', 'X', 'Y', 'Z', 'Q'}
+    
+    # Todas las letras del alfabeto español menos las excluidas
+    letras_disponibles = set("ABCDEFGHIJLMNOPRSTUVÑ") - letras_excluidas
+    
+    # Obtener letras ya usadas en esta partida
+    letras_usadas = sala.get("letras_usadas", set())
+    if not isinstance(letras_usadas, set):
+        letras_usadas = set(letras_usadas) if letras_usadas else set()
+    
+    # Letras que aún no se han usado
+    letras_no_usadas = letras_disponibles - letras_usadas
+    
+    # Si ya se usaron todas las letras, reiniciar el pool
+    if not letras_no_usadas:
+        print(f"🔄 Se usaron todas las letras disponibles, reiniciando pool...")
+        letras_no_usadas = letras_disponibles.copy()
+        sala["letras_usadas"] = set()
+        letras_usadas = set()
+    
+    # Seleccionar una letra aleatoria del pool disponible
+    letra_seleccionada = random.choice(list(letras_no_usadas))
+    
+    # Agregar la letra a las usadas
+    letras_usadas.add(letra_seleccionada)
+    sala["letras_usadas"] = letras_usadas
+    
+    print(f"🎲 Letra seleccionada: {letra_seleccionada} (Usadas: {len(letras_usadas)}/{len(letras_disponibles)})")
+    
+    return letra_seleccionada
+
+# ========================================================== 
 # GENERAR PROMPT MEJORADO PARA VALIDACIÓN 
 # ========================================================== 
 def generar_prompt_validacion(respuesta, categoria, letra):
@@ -1475,6 +1515,9 @@ def create_room_route():
             # Estado de partida
             "finalizada": False,  # Indica si la partida ya finalizó
             "pausada": False,  # Indica si la ronda está pausada
+            
+            # Control de letras usadas (para evitar repeticiones)
+            "letras_usadas": set(),
         }
 
         save_state(state)
@@ -1546,6 +1589,7 @@ def recreate_room_route():
             "penalizaciones": {nombre_anfitrion: 0},
             "finalizada": False,
             "pausada": False,
+            "letras_usadas": set(),  # Reiniciar control de letras
             "sala_anterior": codigo_anterior  # Guardar referencia a la sala anterior
         }
         
@@ -1657,7 +1701,8 @@ def start_game(codigo):
     if jugador and jugador != anfitrion:
         return f"🚫 Solo el anfitrión ({anfitrion}) puede iniciar el juego.", 403
 
-    letra = random.choice("ABCDEFGHIJKLMNÑOPQRSTUVWXYZ")
+    # Seleccionar letra inteligente (sin repetir y sin letras difíciles)
+    letra = seleccionar_letra_aleatoria(sala)
     sala["letra"] = letra
     
     ronda_actual = sala.get("ronda_actual", 1) 
