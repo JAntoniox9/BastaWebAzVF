@@ -1133,8 +1133,8 @@ Responde SOLO con JSON válido, sin texto adicional:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.1,  # Más bajo = más consistente y estricto
-                max_tokens=80,  # Reducido de 100 a 80 para respuestas más rápidas
-                timeout=4  # Reducido de 8 a 4 segundos
+                max_tokens=60,  # Reducido de 80 a 60 para máxima velocidad
+                timeout=6  # Aumentado de 4 a 6 para soportar más concurrencia
             )
             
             resultado_texto = response.choices[0].message.content.strip()
@@ -1301,22 +1301,46 @@ def calcular_puntuaciones(codigo):
         respuesta = tarea['respuesta']
         clave_cache = tarea['clave_cache']
         
-        es_valida_ia, razon_ia, confianza_ia = validar_respuesta_con_ia(
-            respuesta, categoria, letra
-        )
-        
-        return {
-            'clave_cache': clave_cache,
-            'categoria': categoria,
-            'respuesta': respuesta,
-            'es_valida_ia': es_valida_ia,
-            'razon_ia': razon_ia,
-            'confianza_ia': confianza_ia
-        }
+        # Sistema de reintentos para alta concurrencia
+        max_reintentos = 2
+        for intento in range(max_reintentos):
+            try:
+                es_valida_ia, razon_ia, confianza_ia = validar_respuesta_con_ia(
+                    respuesta, categoria, letra
+                )
+                
+                return {
+                    'clave_cache': clave_cache,
+                    'categoria': categoria,
+                    'respuesta': respuesta,
+                    'es_valida_ia': es_valida_ia,
+                    'razon_ia': razon_ia,
+                    'confianza_ia': confianza_ia
+                }
+            except Exception as e:
+                if intento < max_reintentos - 1:
+                    # Esperar un poco antes de reintentar
+                    time.sleep(0.5)
+                    continue
+                else:
+                    # Último intento falló, devolver error
+                    print(f"⚠️ Error tras {max_reintentos} intentos: {e}")
+                    return {
+                        'clave_cache': clave_cache,
+                        'categoria': categoria,
+                        'respuesta': respuesta,
+                        'es_valida_ia': False,
+                        'razon_ia': f"Error de validación tras reintentos",
+                        'confianza_ia': 0.3
+                    }
     
-    # Ejecutar validaciones en paralelo (máximo 10 threads simultáneos)
+    # Ejecutar validaciones en paralelo (escalado dinámico según número de jugadores)
+    # Para 40+ jugadores, usar más workers
+    num_workers = min(20, max(10, len(tareas_validacion) // 4))  # Entre 10-20 workers
+    print(f"   → Usando {num_workers} workers para validación paralela")
+    
     tiempo_inicio = time.time()
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
         # Enviar todas las tareas
         futures = {executor.submit(validar_tarea, tarea): tarea for tarea in tareas_validacion}
         
@@ -1759,6 +1783,16 @@ def join_room_route():
         if codigo not in state["salas"]:
             return jsonify({"ok": False, "error": "La sala no existe."}), 404
 
+        # LÍMITE DE JUGADORES: Máximo 50 por sala para garantizar rendimiento
+        MAX_JUGADORES_POR_SALA = 50
+        sala = state["salas"][codigo]
+        
+        if len(sala["jugadores"]) >= MAX_JUGADORES_POR_SALA and nombre not in sala["jugadores"]:
+            return jsonify({
+                "ok": False, 
+                "error": f"Sala llena. Máximo {MAX_JUGADORES_POR_SALA} jugadores permitidos."
+            }), 400
+
         if nombre in state["salas"][codigo]["jugadores"]:
             return jsonify({"ok": True, "codigo": codigo})
 
@@ -1770,7 +1804,7 @@ def join_room_route():
         user_agent = request.headers.get('User-Agent', '')
         dispositivo_info = parse_user_agent(user_agent)
         
-        emit_admin_log(f"👥 Jugador {nombre} se unió a sala {codigo}", "join", codigo, ip=ip, dispositivo_info=dispositivo_info)
+        emit_admin_log(f"👥 Jugador {nombre} se unió a sala {codigo} ({len(sala['jugadores'])}/{MAX_JUGADORES_POR_SALA})", "join", codigo, ip=ip, dispositivo_info=dispositivo_info)
 
         return jsonify({"ok": True, "codigo": codigo})
 
