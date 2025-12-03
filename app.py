@@ -1783,8 +1783,8 @@ def join_room_route():
         if codigo not in state["salas"]:
             return jsonify({"ok": False, "error": "La sala no existe."}), 404
 
-        # LÍMITE DE JUGADORES: Máximo 50 por sala para garantizar rendimiento
-        MAX_JUGADORES_POR_SALA = 50
+        # LÍMITE DE JUGADORES: Máximo 35 por sala (optimizado para ~30 jugadores)
+        MAX_JUGADORES_POR_SALA = 35
         sala = state["salas"][codigo]
         
         if len(sala["jugadores"]) >= MAX_JUGADORES_POR_SALA and nombre not in sala["jugadores"]:
