@@ -220,14 +220,27 @@ DIFICULTADES = {
 }
 
 # ==========================================================
-# POWER-UPS DISPONIBLES
+# POWER-UPS DISPONIBLES (SIMPLIFICADOS Y FUNCIONALES)
 # ==========================================================
 POWERUPS = {
-    "tiempo_extra": {"nombre": "Tiempo Extra", "descripcion": "+30 segundos", "icon": "⏰", "costo": 1},
-    "pista": {"nombre": "Pista", "descripcion": "Revela una letra", "icon": "💡", "costo": 2},
-    "cambiar_letra": {"nombre": "Cambiar Letra", "descripcion": "Nueva letra aleatoria", "icon": "🔄", "costo": 3},
-    "escudo": {"nombre": "Escudo", "descripcion": "Protege de duplicados", "icon": "🛡️", "costo": 2},
-    "doble_puntos": {"nombre": "Doble Puntos", "descripcion": "X2 en próxima ronda", "icon": "💎", "costo": 3}
+    "tiempo_extra": {
+        "nombre": "Tiempo Extra", 
+        "descripcion": "+30 segundos en la ronda", 
+        "icon": "⏰", 
+        "se_gana_con": "3 respuestas únicas"
+    },
+    "pista_ia": {
+        "nombre": "Pista IA", 
+        "descripcion": "IA sugiere palabra para categoría vacía", 
+        "icon": "💡", 
+        "se_gana_con": "5 respuestas únicas"
+    },
+    "multiplicador": {
+        "nombre": "Multiplicador x2", 
+        "descripcion": "Duplica puntos de próxima ronda", 
+        "icon": "💎", 
+        "se_gana_con": "respuestas 100% únicas"
+    }
 }
 
 # ==========================================================
@@ -1139,7 +1152,7 @@ Responde SOLO con JSON válido, sin texto adicional:
         return False, "Respuesta muy corta (IA no disponible)", 0.5
     
     # Si llegó aquí, aceptar con baja confianza
-    return True, "Validación básica (IA no disponible)", 0. 4
+    return True, "Validación básica (IA no disponible)", 0.4
 
 
 
@@ -1230,12 +1243,64 @@ def calcular_puntuaciones(codigo):
                 elif lista_respuestas.count(respuesta_limpia) > 1:
                     puntuaciones_ronda[jugador] += int(50 * multiplicador)
 
-    # 3. Actualizar puntuaciones totales
+    # 3. Actualizar puntuaciones totales Y OTORGAR POWER-UPS
     puntuaciones_totales = sala.get("puntuaciones", {j: 0 for j in jugadores})
+    powerups_ganados = {}  # Registrar power-ups ganados en esta ronda
+    
     for jugador, puntos in puntuaciones_ronda.items():
         if jugador not in puntuaciones_totales:
             puntuaciones_totales[jugador] = 0
+        
+        # Aplicar multiplicador si está activo
+        powerups_activos_jugador = sala.get("powerups_activos", {}).get(jugador, [])
+        if "multiplicador" in powerups_activos_jugador:
+            puntos *= 2
+            powerups_activos_jugador.remove("multiplicador")
+            print(f"💎 {jugador} usó multiplicador x2 - Puntos: {puntos//2} → {puntos}")
+        
         puntuaciones_totales[jugador] += puntos
+        
+        # ========== OTORGAR POWER-UPS AUTOMÁTICAMENTE ==========
+        # Contar respuestas únicas y totales del jugador
+        respuestas_jugador = respuestas_por_jugador.get(jugador, {})
+        respuestas_unicas = 0
+        respuestas_totales = 0
+        
+        for categoria, respuesta in respuestas_jugador.items():
+            respuesta_limpia = respuesta.strip().upper()
+            if respuesta_limpia and respuesta_limpia.startswith(letra):
+                validacion_jugador = validaciones_ia.get(jugador, {}).get(categoria, {})
+                if validacion_jugador.get("validada_ia", False):
+                    respuestas_totales += 1
+                    lista_respuestas = respuestas_validas_por_categoria.get(categoria, [])
+                    if lista_respuestas.count(respuesta_limpia) == 1:
+                        respuestas_unicas += 1
+        
+        # Inicializar powerups del jugador si no existen
+        if "powerups_jugadores" not in sala:
+            sala["powerups_jugadores"] = {}
+        if jugador not in sala["powerups_jugadores"]:
+            sala["powerups_jugadores"][jugador] = {"tiempo_extra": 0, "pista_ia": 0, "multiplicador": 0}
+        
+        powerups_ganados[jugador] = []
+        
+        # ⏰ TIEMPO EXTRA: 3+ respuestas únicas
+        if respuestas_unicas >= 3:
+            sala["powerups_jugadores"][jugador]["tiempo_extra"] += 1
+            powerups_ganados[jugador].append("tiempo_extra")
+            print(f"⏰ {jugador} ganó Tiempo Extra ({respuestas_unicas} respuestas únicas)")
+        
+        # 💡 PISTA IA: 5+ respuestas únicas
+        if respuestas_unicas >= 5:
+            sala["powerups_jugadores"][jugador]["pista_ia"] += 1
+            powerups_ganados[jugador].append("pista_ia")
+            print(f"💡 {jugador} ganó Pista IA ({respuestas_unicas} respuestas únicas)")
+        
+        # 💎 MULTIPLICADOR: Todas las respuestas únicas (100%)
+        if respuestas_totales > 0 and respuestas_unicas == respuestas_totales and respuestas_unicas >= len(sala.get("categorias", [])):
+            sala["powerups_jugadores"][jugador]["multiplicador"] += 1
+            powerups_ganados[jugador].append("multiplicador")
+            print(f"💎 {jugador} ganó Multiplicador x2 (100% respuestas únicas - {respuestas_unicas}/{respuestas_totales})")
         
     sala["puntuaciones"] = puntuaciones_totales
     
@@ -1300,6 +1365,7 @@ def calcular_puntuaciones(codigo):
         "respuestas": respuestas_por_jugador,
         "validaciones_ia": validaciones_ia,  # Nueva: resultados de validación IA
         "puntos_por_respuesta": puntos_por_respuesta,  # Nueva: puntos por cada respuesta
+        "powerups_ganados": powerups_ganados,  # Nueva: power-ups ganados en esta ronda
         "anfitrion": sala.get("anfitrion"),
         "modo_juego": modo_juego,
         "equipos": equipos,
@@ -1395,8 +1461,9 @@ def create_room_route():
             # Sistema de chat
             "mensajes_chat": [],
             
-            # Power-ups de jugadores
-            "powerups_jugadores": {nombre: {"tiempo_extra": 0, "pista": 0, "cambiar_letra": 0, "escudo": 0, "doble_puntos": 0}},
+            # Power-ups de jugadores (simplificados)
+            "powerups_jugadores": {nombre: {"tiempo_extra": 0, "pista_ia": 0, "multiplicador": 0}},
+            "powerups_activos": {nombre: []},  # Power-ups activos para próxima ronda
             
             # Sistema de validación
             "respuestas_cuestionadas": {},
@@ -1472,7 +1539,8 @@ def recreate_room_route():
             "equipos": {},
             "puntuaciones_equipos": {},
             "mensajes_chat": [],
-            "powerups_jugadores": {nombre_anfitrion: {"tiempo_extra": 0, "pista": 0, "cambiar_letra": 0, "escudo": 0, "doble_puntos": 0}},
+            "powerups_jugadores": {nombre_anfitrion: {"tiempo_extra": 0, "pista_ia": 0, "multiplicador": 0}},
+            "powerups_activos": {nombre_anfitrion: []},
             "respuestas_cuestionadas": {},
             "votos_validacion": {},
             "penalizaciones": {nombre_anfitrion: 0},
@@ -2308,64 +2376,147 @@ def handle_chat_message(data):
 # ==========================================================
 @socketio.on("usar_powerup")
 def handle_usar_powerup(data):
+    """Permite a un jugador usar un power-up durante la partida"""
     codigo = data.get("codigo")
     jugador = data.get("jugador")
     powerup = data.get("powerup")
+    categoria = data.get("categoria", None)  # Para pista_ia
     
     sala = state["salas"].get(codigo)
     if not sala or not sala.get("powerups_habilitados", True):
+        emit("powerup_error", {"error": "Power-ups no habilitados"})
         return
     
     if powerup not in POWERUPS:
+        emit("powerup_error", {"error": "Power-up no válido"})
         return
     
     # Verificar si el jugador tiene el power-up
     powerups_jugador = sala.get("powerups_jugadores", {}).get(jugador, {})
     
     if powerups_jugador.get(powerup, 0) <= 0:
-        emit("powerup_error", {"error": "No tienes este power-up"})
+        emit("powerup_error", {"error": f"No tienes {POWERUPS[powerup]['nombre']}"})
         return
     
-    # Usar el power-up
-    powerups_jugador[powerup] -= 1
-    sala["powerups_jugadores"][jugador] = powerups_jugador
+    # ========== APLICAR EFECTOS DE POWER-UPS ==========
     
-    # Aplicar efecto según el tipo
+    # ⏰ TIEMPO EXTRA: +30 segundos
     if powerup == "tiempo_extra":
+        if not sala.get("en_curso", False):
+            emit("powerup_error", {"error": "Solo puedes usar esto durante la partida"})
+            return
+        
+        # Consumir power-up
+        powerups_jugador[powerup] -= 1
+        sala["powerups_jugadores"][jugador] = powerups_jugador
+        
+        # Agregar tiempo
         tiempo_actual = sala.get("tiempo_restante", 0)
         sala["tiempo_restante"] = tiempo_actual + 30
+        
+        # Notificar a todos
         socketio.emit("update_timer", {"tiempo": sala["tiempo_restante"]}, room=codigo)
         socketio.emit("powerup_usado", {
             "jugador": jugador,
             "powerup": "tiempo_extra",
-            "mensaje": f"{jugador} usó Tiempo Extra! (+30 segundos)"
+            "mensaje": f"⏰ {jugador} agregó +30 segundos!"
         }, room=codigo)
+        
+        print(f"⏰ {jugador} usó Tiempo Extra (+30s) - Tiempo total: {sala['tiempo_restante']}s")
     
-    elif powerup == "cambiar_letra":
-        nueva_letra = random.choice("ABCDEFGHIJKLMNÑOPQRSTUVWXYZ")
-        sala["letra"] = nueva_letra
-        socketio.emit("letra_cambiada", {
-            "letra": nueva_letra,
-            "jugador": jugador
-        }, room=codigo)
-    
-    elif powerup == "pista":
-        # Dar una pista (primera letra de una respuesta válida)
-        categoria = random.choice(sala.get("categorias", []))
+    # 💡 PISTA IA: Sugerencia de palabra válida
+    elif powerup == "pista_ia":
+        if not OPENAI_AVAILABLE or not openai_client:
+            emit("powerup_error", {"error": "IA no disponible"})
+            return
+        
+        if not categoria:
+            emit("powerup_error", {"error": "Debes especificar una categoría"})
+            return
+        
         letra = sala.get("letra", "A")
-        # Aquí podrías integrar una API o diccionario
-        emit("pista_powerup", {
-            "categoria": categoria,
-            "pista": f"Una palabra que empieza con {letra}"
+        
+        # Consumir power-up
+        powerups_jugador[powerup] -= 1
+        sala["powerups_jugadores"][jugador] = powerups_jugador
+        
+        # Generar pista con IA
+        try:
+            prompt = f"""Dame una palabra válida en español para la categoría "{categoria}" que empiece con la letra "{letra}".
+
+IMPORTANTE:
+- Debe ser una palabra REAL que exista
+- Debe ser apropiada y verificable
+- Solo responde con la palabra, sin explicaciones
+
+Ejemplo: Si categoría es "Animal" y letra "R", responde: Rinoceronte"""
+
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "Eres un asistente que sugiere palabras válidas para el juego BASTA/Stop."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=20,
+                timeout=5
+            )
+            
+            sugerencia = response.choices[0].message.content.strip()
+            
+            # Limpiar la respuesta (quitar puntos, comillas, etc.)
+            sugerencia = sugerencia.replace('"', '').replace("'", '').replace('.', '').strip()
+            
+            # Enviar pista solo al jugador que la pidió
+            emit("pista_recibida", {
+                "categoria": categoria,
+                "sugerencia": sugerencia,
+                "letra": letra
+            })
+            
+            print(f"💡 {jugador} usó Pista IA para '{categoria}' con letra '{letra}' → Sugerencia: {sugerencia}")
+            
+        except Exception as e:
+            print(f"❌ Error generando pista IA: {e}")
+            emit("powerup_error", {"error": "Error al generar pista"})
+            # Devolver power-up si hubo error
+            powerups_jugador[powerup] += 1
+            sala["powerups_jugadores"][jugador] = powerups_jugador
+            return
+    
+    # 💎 MULTIPLICADOR x2: Activar para próxima ronda
+    elif powerup == "multiplicador":
+        # Consumir power-up
+        powerups_jugador[powerup] -= 1
+        sala["powerups_jugadores"][jugador] = powerups_jugador
+        
+        # Activar multiplicador para próxima ronda
+        if "powerups_activos" not in sala:
+            sala["powerups_activos"] = {}
+        if jugador not in sala["powerups_activos"]:
+            sala["powerups_activos"][jugador] = []
+        
+        sala["powerups_activos"][jugador].append("multiplicador")
+        
+        # Notificar al jugador
+        emit("multiplicador_activado", {
+            "mensaje": "💎 Multiplicador x2 activado para la próxima ronda"
         })
+        
+        print(f"💎 {jugador} activó Multiplicador x2 para próxima ronda")
     
     save_state(state)
-    print(f"⚡ {jugador} usó power-up: {powerup}")
+    
+    # Enviar estado actualizado de power-ups al jugador
+    emit("powerups_actualizados", {
+        "powerups": sala["powerups_jugadores"][jugador]
+    })
+
 
 
 @socketio.on("dar_powerup")
 def handle_dar_powerup(data):
-    """Administrador puede dar power-ups a jugadores"""
+    """Administrador puede dar power-ups a jugadores (solo para testing/recompensas especiales)"""
     codigo = data.get("codigo")
     jugador_destino = data.get("jugador")
     powerup = data.get("powerup")
@@ -2388,8 +2539,7 @@ def handle_dar_powerup(data):
     
     if jugador_destino not in sala["powerups_jugadores"]:
         sala["powerups_jugadores"][jugador_destino] = {
-            "tiempo_extra": 0, "pista": 0, "cambiar_letra": 0, 
-            "escudo": 0, "doble_puntos": 0
+            "tiempo_extra": 0, "pista_ia": 0, "multiplicador": 0
         }
     
     sala["powerups_jugadores"][jugador_destino][powerup] = \
@@ -2400,8 +2550,30 @@ def handle_dar_powerup(data):
     socketio.emit("powerup_recibido", {
         "jugador": jugador_destino,
         "powerup": powerup,
-        "cantidad": sala["powerups_jugadores"][jugador_destino][powerup]
+        "cantidad": sala["powerups_jugadores"][jugador_destino][powerup],
+        "nombre": POWERUPS[powerup]["nombre"]
     }, room=codigo)
+    
+    print(f"🎁 Admin {jugador_admin} dio {POWERUPS[powerup]['nombre']} a {jugador_destino}")
+
+
+@socketio.on("solicitar_powerups")
+def handle_solicitar_powerups(data):
+    """Envía los power-ups actuales del jugador"""
+    codigo = data.get("codigo")
+    jugador = data.get("jugador")
+    
+    sala = state["salas"].get(codigo)
+    if not sala:
+        return
+    
+    powerups = sala.get("powerups_jugadores", {}).get(jugador, {
+        "tiempo_extra": 0, 
+        "pista_ia": 0, 
+        "multiplicador": 0
+    })
+    
+    emit("powerups_actualizados", {"powerups": powerups})
 
 
 # ==========================================================

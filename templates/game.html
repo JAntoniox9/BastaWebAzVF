@@ -234,25 +234,28 @@
             {% if powerups_habilitados %}
             <div class="powerups-panel">
                 <h3 class="powerups-title"><span>⚡</span>Power-Ups</h3>
+                <p style="font-size: 0.8em; color: #888; margin: 5px 0 10px 0; text-align: center;">
+                    Gana power-ups con respuestas únicas
+                </p>
                 <div id="powerups-list">
-                    <div class="powerup-item disabled" data-powerup="tiempo_extra">
+                    <div class="powerup-item disabled" data-powerup="tiempo_extra" title="Se gana con 3+ respuestas únicas">
                         <div class="powerup-info">
                             <span class="icon">⏰</span>
-                            <span class="name">Tiempo Extra</span>
+                            <span class="name">+30 Seg</span>
                         </div>
                         <span class="powerup-count">0</span>
                     </div>
-                    <div class="powerup-item disabled" data-powerup="pista">
+                    <div class="powerup-item disabled" data-powerup="pista_ia" title="Se gana con 5+ respuestas únicas">
                         <div class="powerup-info">
                             <span class="icon">💡</span>
-                            <span class="name">Pista</span>
+                            <span class="name">Pista IA</span>
                         </div>
                         <span class="powerup-count">0</span>
                     </div>
-                    <div class="powerup-item disabled" data-powerup="cambiar_letra">
+                    <div class="powerup-item disabled" data-powerup="multiplicador" title="Se gana con 100% respuestas únicas">
                         <div class="powerup-info">
-                            <span class="icon">🔄</span>
-                            <span class="name">Cambiar Letra</span>
+                            <span class="icon">💎</span>
+                            <span class="name">x2 Puntos</span>
                         </div>
                         <span class="powerup-count">0</span>
                     </div>
@@ -517,14 +520,42 @@
                 if (this.classList.contains('disabled')) return;
                 
                 const powerup = this.dataset.powerup;
-                socket.emit("usar_powerup", {
-                    codigo: codigo,
-                    jugador: jugador,
-                    powerup: powerup
-                });
+                
+                // Si es pista_ia, pedir que seleccione categoría
+                if (powerup === 'pista_ia') {
+                    const categorias = Array.from(document.querySelectorAll('.category-row')).map(row => {
+                        return row.querySelector('label').textContent.trim();
+                    });
+                    
+                    const categoria = prompt(`¿Para qué categoría quieres la pista?\n\nCategorías:\n- ${categorias.join('\n- ')}`);
+                    
+                    if (!categoria) return;
+                    
+                    socket.emit("usar_powerup", {
+                        codigo: codigo,
+                        jugador: jugador,
+                        powerup: powerup,
+                        categoria: categoria
+                    });
+                } else if (powerup === 'multiplicador') {
+                    if (confirm('💎 ¿Activar multiplicador x2 para la PRÓXIMA ronda?')) {
+                        socket.emit("usar_powerup", {
+                            codigo: codigo,
+                            jugador: jugador,
+                            powerup: powerup
+                        });
+                    }
+                } else {
+                    socket.emit("usar_powerup", {
+                        codigo: codigo,
+                        jugador: jugador,
+                        powerup: powerup
+                    });
+                }
             });
         });
         
+        // Power-up usado
         socket.on("powerup_usado", (data) => {
             mostrarNotificacion(`${data.mensaje}`);
             if (typeof soundSystem !== 'undefined') {
@@ -532,14 +563,42 @@
             }
         });
         
-        socket.on("letra_cambiada", (data) => {
-            letraElemento.textContent = data.letra;
-            mostrarNotificacion(`🔄 ${data.jugador} cambió la letra a ${data.letra}!`);
+        // Pista recibida (solo para quien la pidió)
+        socket.on("pista_recibida", (data) => {
+            mostrarNotificacion(`💡 Pista para ${data.categoria}: ${data.sugerencia}`, 8000);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playPowerup();
+            }
         });
         
+        // Multiplicador activado
+        socket.on("multiplicador_activado", (data) => {
+            mostrarNotificacion(data.mensaje, 5000);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playPowerup();
+            }
+        });
+        
+        // Power-up recibido (por admin o ganado)
         socket.on("powerup_recibido", (data) => {
             if (data.jugador === jugadorFinal) {
                 actualizarPowerup(data.powerup, data.cantidad);
+                mostrarNotificacion(`🎁 Ganaste: ${data.nombre || data.powerup}!`, 3000);
+            }
+        });
+        
+        // Power-ups actualizados
+        socket.on("powerups_actualizados", (data) => {
+            for (const [powerup, cantidad] of Object.entries(data.powerups)) {
+                actualizarPowerup(powerup, cantidad);
+            }
+        });
+        
+        // Error de power-up
+        socket.on("powerup_error", (data) => {
+            mostrarNotificacion(`❌ ${data.error}`, 3000);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playError();
             }
         });
     }
@@ -582,6 +641,11 @@
     // Socket events
     socket.on("connect", () => {
         socket.emit("rejoin_room_event", { codigo: codigo, jugador: jugadorRecuperado || jugador });
+        
+        // Solicitar power-ups actuales al conectar
+        if (powerupsHabilitados) {
+            socket.emit("solicitar_powerups", {codigo: codigo, jugador: jugadorFinal});
+        }
     });
     
     // Redirigir automáticamente a waiting cuando el anfitrión inicia una nueva ronda
@@ -1270,6 +1334,42 @@
             }
             
             resultadosModal.style.display = 'block';
+            
+            // ========== NOTIFICAR POWER-UPS GANADOS ==========
+            if (data.powerups_ganados && data.powerups_ganados[jugadorFinal]) {
+                const powerupsGanados = data.powerups_ganados[jugadorFinal];
+                
+                if (powerupsGanados.length > 0) {
+                    setTimeout(() => {
+                        const iconos = {
+                            'tiempo_extra': '⏰',
+                            'pista_ia': '💡',
+                            'multiplicador': '💎'
+                        };
+                        
+                        const nombres = {
+                            'tiempo_extra': 'Tiempo Extra',
+                            'pista_ia': 'Pista IA',
+                            'multiplicador': 'Multiplicador x2'
+                        };
+                        
+                        powerupsGanados.forEach((powerup, index) => {
+                            setTimeout(() => {
+                                const icono = iconos[powerup] || '⚡';
+                                const nombre = nombres[powerup] || powerup;
+                                mostrarNotificacion(`🎁 ¡Ganaste ${icono} ${nombre}!`, 4000);
+                                
+                                // Actualizar contador visual
+                                socket.emit("solicitar_powerups", {codigo: codigo, jugador: jugadorFinal});
+                                
+                                if (typeof soundSystem !== 'undefined') {
+                                    soundSystem.playPowerup();
+                                }
+                            }, index * 800); // Espaciar notificaciones
+                        });
+                    }, 1000);
+                }
+            }
             
             if (typeof soundSystem !== 'undefined' && !data.fin_del_juego) {
                 soundSystem.playSuccess();
