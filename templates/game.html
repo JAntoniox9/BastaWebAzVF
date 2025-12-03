@@ -1102,15 +1102,13 @@
     
     function habilitarBotonBasta() {
         if (!partidaFinalizada) {
-            bastaBtn.disabled = false;
-            bastaBtn.style.opacity = '1';
-            bastaBtn.style.cursor = 'pointer';
-            bastaBtn.textContent = '🛑 ¡BASTA!';
-            
+            bastaBtn.classList.remove('activado');
             mostrarNotificacion('✅ ¡Ahora puedes presionar BASTA!');
             if (typeof soundSystem !== 'undefined') {
                 soundSystem.playButton();
             }
+            // Actualizar estado según campos llenos
+            actualizarEstadoBasta();
         }
     }
     
@@ -1124,10 +1122,76 @@
         }
     });
     
+    // Función para contar campos llenos
+    function contarCamposLlenos() {
+        let contador = 0;
+        inputs.forEach(input => {
+            if (input.value && input.value.trim() !== '') {
+                contador++;
+            }
+        });
+        return contador;
+    }
+    
+    // Función para actualizar estado del botón BASTA según campos llenos
+    function actualizarEstadoBasta() {
+        if (partidaFinalizada || bastaCooldownSegundos > 0) return;
+        
+        const CAMPOS_MINIMOS = 3;
+        const camposLlenos = contarCamposLlenos();
+        
+        if (camposLlenos < CAMPOS_MINIMOS) {
+            bastaBtn.disabled = true;
+            bastaBtn.style.opacity = '0.6';
+            bastaBtn.style.cursor = 'not-allowed';
+            bastaBtn.innerHTML = `<span style="font-size: 0.85em;">🛑 BASTA (${camposLlenos}/${CAMPOS_MINIMOS} campos)</span>`;
+        } else {
+            if (!bastaBtn.classList.contains('activado')) {
+                bastaBtn.disabled = false;
+                bastaBtn.style.opacity = '1';
+                bastaBtn.style.cursor = 'pointer';
+                bastaBtn.textContent = '🛑 ¡BASTA!';
+            }
+        }
+    }
+    
+    // Actualizar estado del botón cuando el usuario escribe
+    inputs.forEach(input => {
+        input.addEventListener('input', actualizarEstadoBasta);
+        input.addEventListener('change', actualizarEstadoBasta);
+    });
+    
+    // Inicializar el estado del botón al cargar
+    actualizarEstadoBasta();
+    
     bastaBtn.addEventListener("click", () => {
         if (bastaBtn.disabled || partidaFinalizada || bastaCooldownSegundos > 0) return;
-        socket.emit("basta_pressed", { codigo: codigo });
+        
+        const CAMPOS_MINIMOS = 3;
+        const camposLlenos = contarCamposLlenos();
+        
+        if (camposLlenos < CAMPOS_MINIMOS) {
+            mostrarNotificacion(`❌ Necesitas completar al menos ${CAMPOS_MINIMOS} campos para presionar ¡BASTA!`);
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playError();
+            }
+            return;
+        }
+        
+        // Recopilar respuestas actuales
+        const respuestas = {};
+        inputs.forEach(input => {
+            const cat = input.getAttribute("data-categoria");
+            respuestas[cat] = input.value.trim();
+        });
+        
+        socket.emit("basta_pressed", { 
+            codigo: codigo,
+            jugador: jugadorFinal,
+            respuestas: respuestas
+        });
         bastaBtn.disabled = true;
+        bastaBtn.classList.add('activado');
         bastaBtn.textContent = "⏱️ ¡BASTA! ACTIVADO";
     });
 

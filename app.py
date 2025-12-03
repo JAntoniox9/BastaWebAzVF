@@ -2142,6 +2142,8 @@ def on_disconnect():
 @socketio.on("basta_pressed")
 def handle_basta(data):
     codigo = data.get("codigo")
+    jugador = data.get("jugador")
+    respuestas = data.get("respuestas", {})
     sala = state["salas"].get(codigo)
 
     # Verificar si la partida está finalizada
@@ -2171,13 +2173,25 @@ def handle_basta(data):
         }, room=request.sid)
         emit_admin_log(f"⚠️ BASTA rechazado: muy pronto ({int(tiempo_transcurrido)}s)", "error", codigo)
         return
+    
+    # NUEVO: Verificar que el jugador tenga al menos 3 campos llenos
+    CAMPOS_MINIMOS = 3
+    campos_llenos = sum(1 for valor in respuestas.values() if valor and str(valor).strip())
+    
+    if campos_llenos < CAMPOS_MINIMOS:
+        socketio.emit("basta_rechazado", {
+            "mensaje": f"❌ Necesitas completar al menos {CAMPOS_MINIMOS} campos para presionar ¡BASTA! (Tienes {campos_llenos})",
+            "segundos_restantes": 0
+        }, room=request.sid)
+        emit_admin_log(f"⚠️ BASTA rechazado: solo {campos_llenos}/{CAMPOS_MINIMOS} campos llenos", "error", codigo)
+        return
 
     if sala and not sala.get("basta_activado", False):
         sala["basta_activado"] = True
         save_state(state)
         timers_activos[codigo] = False
-        emit_admin_log(f"✋ ¡BASTA! presionado", "game", codigo)
-        socketio.emit("basta_triggered", {"motivo": "Jugador presionó ¡BASTA!"}, room=codigo)
+        emit_admin_log(f"✋ ¡BASTA! presionado por {jugador} ({campos_llenos} campos)", "game", codigo)
+        socketio.emit("basta_triggered", {"motivo": f"{jugador} presionó ¡BASTA!"}, room=codigo)
         threading.Thread(target=conteo_final, args=(codigo,)).start()
     else:
         print(f"⚠️ ¡BASTA! ignorado: ya había sido activado para sala {codigo}")
