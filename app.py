@@ -1212,52 +1212,6 @@ def calcular_puntuaciones(codigo):
     jugadores = list(sala.get("puntuaciones", {}).keys())
     if not jugadores:
          jugadores = sala.get("jugadores", [])
-    
-    # VALIDACIÓN ESPECIAL: Verificar si el jugador que presionó BASTA tenía respuestas válidas
-    jugador_basta = sala.get("jugador_basta")
-    respuestas_basta = sala.get("respuestas_basta", {})
-    penalizacion_basta = False
-    
-    if jugador_basta and respuestas_basta:
-        print(f"🔍 Validando respuestas del jugador que presionó BASTA: {jugador_basta}")
-        
-        # Validar en paralelo también
-        tareas_basta = []
-        for categoria, respuesta in respuestas_basta.items():
-            respuesta_limpia = str(respuesta).strip()
-            if respuesta_limpia and len(respuesta_limpia) >= 2:
-                tareas_basta.append({
-                    'categoria': categoria,
-                    'respuesta': respuesta_limpia
-                })
-        
-        def validar_basta_tarea(tarea):
-            es_valida, razon, confianza = validar_palabra_individual_con_ia(
-                tarea['respuesta'], tarea['categoria'], letra
-            )
-            return es_valida
-        
-        campos_validos_basta = 0
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(validar_basta_tarea, tarea) for tarea in tareas_basta]
-            for future in as_completed(futures):
-                try:
-                    if future.result():
-                        campos_validos_basta += 1
-                except Exception as e:
-                    print(f"⚠️ Error validando respuesta BASTA: {e}")
-        
-        # Si no tiene al menos 3 respuestas válidas, penalizar
-        if campos_validos_basta < 3:
-            penalizacion_basta = True
-            print(f"⚠️ {jugador_basta} presionó BASTA sin 3 respuestas válidas (solo {campos_validos_basta}). Será penalizado.")
-            socketio.emit("jugador_penalizado_basta", {
-                "jugador": jugador_basta,
-                "razon": f"Presionó BASTA con solo {campos_validos_basta} respuestas válidas (necesita 3)",
-                "penalizacion": -50
-            }, room=codigo)
-        else:
-            print(f"✅ {jugador_basta} tenía {campos_validos_basta} respuestas válidas. BASTA aceptado.")
              
     puntuaciones_ronda = {jugador: 0 for jugador in jugadores}
     
@@ -1489,12 +1443,9 @@ def calcular_puntuaciones(codigo):
             powerups_ganados[jugador].append("multiplicador")
             print(f"💎 {jugador} ganó Multiplicador x2 (100% respuestas únicas - {respuestas_unicas}/{respuestas_totales})")
     
-    # Aplicar penalización si el jugador que presionó BASTA no tenía respuestas válidas
-    if penalizacion_basta and jugador_basta in puntuaciones_totales:
-        puntuaciones_totales[jugador_basta] = max(0, puntuaciones_totales[jugador_basta] - 50)
-        print(f"⚠️ Penalización aplicada a {jugador_basta}: -50 puntos")
+    sala["puntuaciones"] = puntuaciones_totales
     
-    sala["puntuaciones"] = puntuaciones_totales    # 4. Si el modo es EQUIPOS, calcular puntuaciones de equipos
+    # 4. Si el modo es EQUIPOS, calcular puntuaciones de equipos
     modo_juego = sala.get("modo_juego", "clasico")
     puntuaciones_equipos = {}
     equipos = sala.get("equipos", {})
@@ -1536,6 +1487,36 @@ def calcular_puntuaciones(codigo):
     sala["validaciones_ia"] = validaciones_ia
     print(f"💾 Validaciones guardadas en sala. Total: {len(validaciones_ia)} jugadores")
     
+    # VALIDACIÓN POST-PROCESO: Verificar si el jugador que presionó BASTA tenía respuestas válidas
+    jugador_basta = sala.get("jugador_basta")
+    penalizacion_basta_info = None
+    
+    if jugador_basta and jugador_basta in validaciones_ia:
+        print(f"🔍 Verificando respuestas del jugador que presionó BASTA: {jugador_basta}")
+        
+        # Contar cuántas respuestas válidas tenía
+        campos_validos_basta = 0
+        for categoria, validacion in validaciones_ia[jugador_basta].items():
+            if validacion.get("validada_ia", False):
+                campos_validos_basta += 1
+        
+        # Si no tiene al menos 3 respuestas válidas, penalizar
+        if campos_validos_basta < 3:
+            penalizacion = -50
+            puntuaciones_totales[jugador_basta] = max(0, puntuaciones_totales[jugador_basta] + penalizacion)
+            sala["puntuaciones"] = puntuaciones_totales
+            
+            penalizacion_basta_info = {
+                "jugador": jugador_basta,
+                "campos_validos": campos_validos_basta,
+                "razon": f"Presionó BASTA con solo {campos_validos_basta} respuestas válidas (necesita 3)",
+                "penalizacion": penalizacion
+            }
+            
+            print(f"⚠️ {jugador_basta} penalizado: {penalizacion} puntos (solo {campos_validos_basta}/3 válidas)")
+        else:
+            print(f"✅ {jugador_basta} tenía {campos_validos_basta} respuestas válidas. BASTA aceptado.")
+    
     # Preparar categorías con iconos para el frontend
     categorias_sala = sala.get("categorias", [])
     categorias_con_info = []
@@ -1556,6 +1537,7 @@ def calcular_puntuaciones(codigo):
         "validaciones_ia": validaciones_ia,  # Nueva: resultados de validación IA
         "puntos_por_respuesta": puntos_por_respuesta,  # Nueva: puntos por cada respuesta
         "powerups_ganados": powerups_ganados,  # Nueva: power-ups ganados en esta ronda
+        "penalizacion_basta": penalizacion_basta_info,  # Nueva: info de penalización BASTA
         "anfitrion": sala.get("anfitrion"),
         "modo_juego": modo_juego,
         "equipos": equipos,

@@ -850,32 +850,38 @@
         
         document.getElementById('validando-overlay').style.display = 'flex';
     });
-    
-    socket.on("jugador_penalizado_basta", (data) => {
-        // Mostrar notificación de penalización
-        const mensaje = `⚠️ ${data.jugador} fue penalizado: ${data.razon} (${data.penalizacion} puntos)`;
-        mostrarNotificacion(mensaje, 10000);
-        
-        // Si soy el penalizado, mostrar alerta adicional
-        if (data.jugador === jugadorFinal) {
-            setTimeout(() => {
-                alert(`❌ PENALIZACIÓN\n\n${data.razon}\n\nPenalización: ${data.penalizacion} puntos\n\n⚠️ Asegúrate de tener al menos 3 respuestas VÁLIDAS antes de presionar BASTA.`);
-            }, 1000);
-        }
-        
-        if (typeof soundSystem !== 'undefined') {
-            soundSystem.playError();
-        }
-    });
 
     socket.on("round_results", data => {
+        // Cerrar overlay de validación PRIMERO
+        document.getElementById('validando-overlay').style.display = 'none';
+        
+        // Verificar si hay penalización por BASTA
+        if (data.penalizacion_basta) {
+            const penInfo = data.penalizacion_basta;
+            const mensaje = `⚠️ ${penInfo.jugador} fue penalizado: ${penInfo.razon} (${penInfo.penalizacion} puntos)`;
+            
+            // Mostrar notificación a todos
+            mostrarNotificacion(mensaje, 8000);
+            
+            // Si soy el penalizado, mostrar alerta después de un momento
+            if (penInfo.jugador === jugadorFinal) {
+                setTimeout(() => {
+                    alert(`❌ PENALIZACIÓN POR BASTA INVÁLIDO\n\n${penInfo.razon}\n\nPenalización: ${penInfo.penalizacion} puntos\n\n⚠️ Asegúrate de tener al menos 3 respuestas VÁLIDAS antes de presionar BASTA.`);
+                }, 1500);
+            }
+            
+            if (typeof soundSystem !== 'undefined') {
+                soundSystem.playError();
+            }
+        }
+        
         if (data.fin_del_juego) {
             partidaFinalizada = true;
             localStorage.removeItem(`respuestas_${codigo}`);
             bastaBtn.disabled = true;
             bastaBtn.textContent = "🏁 Partida Finalizada";
         }
-        document.getElementById('validando-overlay').style.display = 'none';
+        
         mostrarResultados(data);
         
         // Si es el fin del juego, mostrar ventana especial después de mostrar resultados
