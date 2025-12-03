@@ -1797,8 +1797,16 @@ def join_room_route():
 
 @app.route("/waiting/<codigo>")
 def waiting_room(codigo):
-    sala = state["salas"].get(codigo)
+    # --- BLOQUE DE RECUPERACIÓN ---
+    if codigo not in state["salas"]:
+        with app.app_context():
+            sala_db = db.session.get(SalaDB, codigo)
+            if sala_db:
+                state["salas"][codigo] = sala_db.datos
+                print(f"🔄 Sala {codigo} recuperada de BD en waiting")
+    # -----------------------------
 
+    sala = state["salas"].get(codigo)
     if not sala:
         return "❌ Sala no encontrada", 404
 
@@ -1916,6 +1924,15 @@ def start_game(codigo):
 
 @app.route("/game/<codigo>")
 def game(codigo):
+    # --- BLOQUE DE RECUPERACIÓN ---
+    if codigo not in state["salas"]:
+        with app.app_context():
+            sala_db = db.session.get(SalaDB, codigo)
+            if sala_db:
+                state["salas"][codigo] = sala_db.datos
+                print(f"🔄 Sala {codigo} recuperada de BD en game")
+    # -----------------------------
+
     if codigo not in state["salas"]:
         return "Sala no encontrada", 404
 
