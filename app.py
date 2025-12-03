@@ -562,7 +562,7 @@ def seleccionar_letra_aleatoria(sala):
     
     # Agregar la letra a las usadas
     letras_usadas.add(letra_seleccionada)
-    sala["letras_usadas"] = letras_usadas
+    sala["letras_usadas"] = list(letras_usadas)
     
     print(f"🎲 Letra seleccionada: {letra_seleccionada} (Usadas: {len(letras_usadas)}/{len(letras_disponibles)})")
     
@@ -1649,7 +1649,7 @@ def create_room_route():
             "pausada": False,  # Indica si la ronda está pausada
             
             # Control de letras usadas (para evitar repeticiones)
-            "letras_usadas": set(),
+            "letras_usadas": [],
         }
 
         save_state(state)
@@ -1721,7 +1721,7 @@ def recreate_room_route():
             "penalizaciones": {nombre_anfitrion: 0},
             "finalizada": False,
             "pausada": False,
-            "letras_usadas": set(),  # Reiniciar control de letras
+            "letras_usadas": [],  # Reiniciar control de letras
             "sala_anterior": codigo_anterior  # Guardar referencia a la sala anterior
         }
         
