@@ -150,15 +150,14 @@
         <div class="game-main">
             <!-- Header -->
             <div class="game-header">
-            <div>
+                <div>
                     <p class="letra-display" id="letra-actual">?</p>
                     <p class="ronda-info" id="ronda-info-text">
                         Ronda <span id="ronda-texto">{{ ronda }}</span> de {{ total_rondas }} • 
                         <span id="jugador-nombre"></span>
+                        <span id="equipo-badge" style="display: none;"></span>
                     </p>
-                </div>
-                
-                <div class="timer-container">
+                </div>                <div class="timer-container">
                     <svg class="timer-circle" width="100" height="100">
                         <defs>
                             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -285,6 +284,8 @@
     const powerupsHabilitados = {{ powerups_habilitados|tojson }};
     const chatHabilitado = {{ chat_habilitado|tojson }};
     const validacionActiva = {{ validacion_activa|tojson }};
+    const modoJuego = "{{ modo_juego }}";
+    const equiposData = {{ equipos|tojson }};
     
     // Guardar código en localStorage para recuperación después de recarga
     if (codigo) {
@@ -338,6 +339,28 @@
     
     // Detectar si el jugador actual es el anfitrión
     const esAnfitrion = (jugadorFinal === anfitrion);
+    
+    // Mostrar equipo si está en modo equipos
+    function mostrarEquipoJugador() {
+        if (modoJuego === "equipos" && equiposData) {
+            let equipoJugador = null;
+            for (const [nombreEquipo, miembros] of Object.entries(equiposData)) {
+                if (miembros.includes(jugadorFinal)) {
+                    equipoJugador = nombreEquipo;
+                    break;
+                }
+            }
+            
+            if (equipoJugador) {
+                const equipoBadge = document.getElementById('equipo-badge');
+                const color = equipoJugador.includes('A') ? 'var(--primary)' : 'var(--success)';
+                equipoBadge.innerHTML = ` • <span style="background: ${color}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.9em;">${equipoJugador}</span>`;
+                equipoBadge.style.display = 'inline';
+            }
+        }
+    }
+    
+    mostrarEquipoJugador();
     
     // Variable para almacenar el código de la nueva sala (si existe)
     let codigoNuevaSala = null;

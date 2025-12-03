@@ -1759,6 +1759,12 @@ def game(codigo):
         icon = CATEGORIAS_DISPONIBLES.get(cat, {}).get("icon", "📝")
         categorias_con_iconos.append({"nombre": cat, "icon": icon})
 
+    # Obtener información de equipos
+    equipos = sala.get("equipos", {})
+    equipos_data = {}
+    if modo_juego == "equipos" and equipos:
+        equipos_data = equipos
+
     return render_template("game.html",
                            jugador=sala["anfitrion"],
                            anfitrion=sala["anfitrion"],
@@ -1769,7 +1775,9 @@ def game(codigo):
                            categorias=categorias_con_iconos,
                            powerups_habilitados=sala.get("powerups_habilitados", True),
                            chat_habilitado=sala.get("chat_habilitado", True),
-                           validacion_activa=sala.get("validacion_activa", False))
+                           validacion_activa=sala.get("validacion_activa", False),
+                           modo_juego=modo_juego,
+                           equipos=equipos_data)
 
 
 
