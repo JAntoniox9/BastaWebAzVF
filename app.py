@@ -6,6 +6,7 @@ import random, string, json, os, threading, time, hashlib, hmac, base64, re, uni
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from functools import wraps
+import html
 
 from database import db, init_db, SalaDB
 
@@ -306,7 +307,8 @@ def load_state():
         return {"salas": {}}
 
 # Cargamos el estado al iniciar
-state = load_state()
+with app.app_context():
+    state = load_state()
 
 def save_state(state):
     """Guarda el estado en la base de datos MySQL usando upsert"""
@@ -427,55 +429,67 @@ Mensajes normales de conversación, emojis, saludos, etc. son apropiados."""
 
 def filtrar_mensaje_chat(mensaje, sala=None, codigo_sala=""):
     """
-    Filtra mensajes del chat usando IA y reglas de censura
+    Filtra mensajes del chat: Anti-HTML, Anti-Spam y Moderación.
     Returns: (mensaje_filtrado, es_valido, razon, tiene_groseria)
     """
-    mensaje_original = mensaje
-    mensaje_lower = mensaje.lower().strip()
-    
-    # 1. Verificar longitud
-    if len(mensaje_lower) == 0:
+    if not mensaje:
         return "", False, "Mensaje vacío", False
+
+    # 1. SANITIZACIÓN HTML (Anti-Inyección) [CRÍTICO]
+    # Esto convierte <b>Hola</b> en &lt;b&gt;Hola&lt;/b&gt; para que no se ejecute como código.
+    mensaje = html.escape(mensaje)
+
+    # 2. VALIDACIÓN DE CONTENIDO REAL (Anti-Mensajes Vacíos/Invisibles)
+    # Quitamos espacios y verificamos longitud
+    mensaje_limpio = mensaje.strip()
+    if len(mensaje_limpio) == 0:
+        return "", False, "Mensaje vacío", False
+    
+    # 3. VALIDACIÓN DE CARACTERES (Anti-Spam de símbolos)
+    # Exigimos que el mensaje contenga AL MENOS una letra (a-z) o número (0-9).
+    # Esto bloquea mensajes como "..." , "???", "" (invisible) o "/**+-//-+**"
+    if not re.search(r'[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]', mensaje_limpio):
+         # Opcional: Puedes permitir solo emojis si quieres, pero esto bloquea puro símbolo basura
+         return "", False, "El mensaje debe contener texto válido", False
+
+    mensaje_lower = mensaje_limpio.lower()
     
     if len(mensaje) > 200:
         return "", False, "Mensaje muy largo (máx 200 caracteres)", False
     
-    # 2. MODERAR CON IA (si está disponible)
-    contiene_groseria = False
-    mensaje_censurado = mensaje
+    # --- AQUÍ SIGUE TU LÓGICA DE MODERACIÓN IA EXISTENTE ---
+    # (El resto de tu función se mantiene igual, pero trabajando sobre 'mensaje_limpio')
     
-    es_apropiado_ia, razon_ia, censurado_ia = moderar_mensaje_con_ia(mensaje)
+    contiene_groseria = False
+    mensaje_censurado = mensaje_limpio # Usamos el mensaje ya sanitizado
+    
+    es_apropiado_ia, razon_ia, censurado_ia = moderar_mensaje_con_ia(mensaje_limpio)
     
     if es_apropiado_ia is not None:
-        # IA disponible - usar su resultado
         if not es_apropiado_ia:
             contiene_groseria = True
-            mensaje_censurado = censurado_ia if censurado_ia else mensaje
+            mensaje_censurado = html.escape(censurado_ia) if censurado_ia else mensaje_limpio
             emit_admin_log(f"🤖 [MODERACIÓN IA] Contenido inapropiado: {razon_ia}", "error", codigo_sala)
     else:
-        # Fallback: usar lista de palabras prohibidas
+        # Fallback manual
         for palabra_prohibida in PALABRAS_PROHIBIDAS:
             if palabra_prohibida in mensaje_lower:
                 contiene_groseria = True
                 censura = "*" * len(palabra_prohibida)
-                import re
                 pattern = re.compile(re.escape(palabra_prohibida), re.IGNORECASE)
                 mensaje_censurado = pattern.sub(censura, mensaje_censurado)
     
-    # 3. VERIFICAR TRAMPA: letras prohibidas DENTRO de palabras
+    # 4. VERIFICAR TRAMPA (Misma lógica que ya tenías)
     if sala and sala.get("en_curso", False):
         letra_ronda = sala.get("letra", "").upper()
         if letra_ronda:
-            import re
             palabras_encontradas = re.findall(r'[a-záéíóúñA-ZÁÉÍÓÚÑ]+', mensaje_lower)
-            
             palabras_sospechosas = []
             for palabra in palabras_encontradas:
                 if len(palabra) >= 3:
                     if palabra[0].upper() == letra_ronda:
                         palabras_sospechosas.append(palabra)
                         continue
-                    
                     if len(palabra) >= 4:
                         for i in range(1, len(palabra) - 2):
                             if palabra[i].upper() == letra_ronda:
@@ -483,20 +497,18 @@ def filtrar_mensaje_chat(mensaje, sala=None, codigo_sala=""):
                                 if len(subcadena) >= 3:
                                     palabras_sospechosas.append(f"{palabra} (contiene '{subcadena}')")
                                     break
-            
             if palabras_sospechosas:
                 palabras_str = ", ".join(palabras_sospechosas[:3])
-                return "", False, f"⚠️ Detectada posible trampa: palabras con '{letra_ronda}': {palabras_str}", False
+                return "", False, f"⚠️ Posible trampa detectada con letra '{letra_ronda}'", False
     
-    # 4. Filtrar spam (mismo mensaje repetido)
+    # 5. Anti-Spam (Repetición)
     if sala:
         mensajes_recientes = sala.get("mensajes_chat", [])[-5:]
         mensajes_recientes_texto = [m.get("mensaje", "") for m in mensajes_recientes if m.get("tipo") != "sistema"]
-        
-        if mensaje_lower in [m.lower() for m in mensajes_recientes_texto]:
+        # Comparamos contra el mensaje ya limpio
+        if mensaje_limpio.lower() in [m.lower() for m in mensajes_recientes_texto]:
             return "", False, "⚠️ No puedes enviar el mismo mensaje repetidamente", False
     
-    # 5. Devolver mensaje censurado
     return mensaje_censurado, True, "OK", contiene_groseria
 
 def crear_equipos_automaticamente(sala):
