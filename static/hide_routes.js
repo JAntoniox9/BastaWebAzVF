@@ -2,7 +2,7 @@
  * Sistema para ocultar rutas en la URL
  * Se ejecuta DESPUÉS de que la página cargue completamente
  * para no interferir con la navegación
- */
+ 
 
 (function() {
     'use strict';
@@ -41,3 +41,4 @@
     });
     
 })();
+*/
