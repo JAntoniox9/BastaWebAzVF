@@ -1690,7 +1690,7 @@ input:checked + .slider:before {
 .progress-dots .dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* Modal de Resultados */
-#resultados-modal {
+#resultados-modal, #penalizacion-modal, #pista-ia-modal, #multiplicador-modal {
     position: fixed;
     top: 0;
     left: 0;

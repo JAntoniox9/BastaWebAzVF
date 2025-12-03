@@ -90,6 +90,86 @@
         </div>
     </div>
 
+    <!-- Modal de Penalización por BASTA -->
+    <div id="penalizacion-modal" style="display: none;">
+        <div class="resultados-modal-content" style="max-width: 500px;">
+            <div class="resultados-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 25px 30px;">
+                <h2 style="margin: 0; font-size: 1.6em; font-weight: 700; text-align: center;">
+                    ❌ PENALIZACIÓN POR BASTA INVÁLIDO
+                </h2>
+            </div>
+            
+            <div style="padding: 30px; text-align: center;">
+                <div id="penalizacion-mensaje" style="font-size: 1.1em; line-height: 1.8; margin-bottom: 20px;"></div>
+                <div id="penalizacion-puntos" style="font-size: 1.3em; font-weight: 700; color: #ef4444; margin-bottom: 25px;"></div>
+                <div style="background: #fef2f2; border: 2px solid #fee2e2; border-radius: var(--radius-lg); padding: 15px; margin-bottom: 25px;">
+                    <p style="margin: 0; color: #991b1b; font-weight: 600;">
+                        ⚠️ Asegúrate de tener al menos 3 respuestas VÁLIDAS antes de presionar BASTA.
+                    </p>
+                </div>
+                <button onclick="cerrarModalPenalizacion()" style="background: var(--gradient-1); color: white; border: none; padding: 12px 35px; border-radius: var(--radius-lg); font-size: 1.1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Pista IA -->
+    <div id="pista-ia-modal" style="display: none;">
+        <div class="resultados-modal-content" style="max-width: 500px;">
+            <div class="resultados-header" style="background: var(--gradient-1); color: white; border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 25px 30px;">
+                <h2 style="margin: 0; font-size: 1.6em; font-weight: 700; text-align: center;">
+                    💡 Pista de IA
+                </h2>
+            </div>
+            
+            <div style="padding: 30px;">
+                <p style="font-size: 1.1em; margin-bottom: 20px; text-align: center; color: var(--text-secondary);">
+                    ¿Para qué categoría quieres la pista?
+                </p>
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Categorías:</label>
+                    <select id="categoria-select" style="width: 100%; padding: 12px; font-size: 1em; border: 2px solid var(--light); border-radius: var(--radius-lg); background: white; cursor: pointer;">
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="confirmarPistaIA()" style="background: var(--gradient-1); color: white; border: none; padding: 12px 30px; border-radius: var(--radius-lg); font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+                        Aceptar
+                    </button>
+                    <button onclick="cerrarModalPistaIA()" style="background: var(--light); color: var(--text-primary); border: none; padding: 12px 30px; border-radius: var(--radius-lg); font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación Multiplicador -->
+    <div id="multiplicador-modal" style="display: none;">
+        <div class="resultados-modal-content" style="max-width: 450px;">
+            <div class="resultados-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 25px 30px;">
+                <h2 style="margin: 0; font-size: 1.6em; font-weight: 700; text-align: center;">
+                    💎 Multiplicador x2
+                </h2>
+            </div>
+            
+            <div style="padding: 30px; text-align: center;">
+                <p style="font-size: 1.2em; margin-bottom: 25px; line-height: 1.6; color: var(--text-primary);">
+                    ¿Activar multiplicador x2 para la <strong>PRÓXIMA</strong> ronda?
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="confirmarMultiplicador()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 12px 30px; border-radius: var(--radius-lg); font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">
+                        ✓ Activar
+                    </button>
+                    <button onclick="cerrarModalMultiplicador()" style="background: var(--light); color: var(--text-primary); border: none; padding: 12px 30px; border-radius: var(--radius-lg); font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Resultados Completo -->
     <div id="resultados-modal" style="display: none;">
         <div class="resultados-modal-content" style="max-width: 1100px; width: 95%; margin: 20px auto;">
@@ -556,24 +636,9 @@
                         return row.querySelector('label').textContent.trim();
                     });
                     
-                    const categoria = prompt(`¿Para qué categoría quieres la pista?\n\nCategorías:\n- ${categorias.join('\n- ')}`);
-                    
-                    if (!categoria) return;
-                    
-                    socket.emit("usar_powerup", {
-                        codigo: codigo,
-                        jugador: jugador,
-                        powerup: powerup,
-                        categoria: categoria
-                    });
+                    mostrarModalPistaIA(categorias, powerup);
                 } else if (powerup === 'multiplicador') {
-                    if (confirm('💎 ¿Activar multiplicador x2 para la PRÓXIMA ronda?')) {
-                        socket.emit("usar_powerup", {
-                            codigo: codigo,
-                            jugador: jugador,
-                            powerup: powerup
-                        });
-                    }
+                    mostrarModalMultiplicador(powerup);
                 } else {
                     socket.emit("usar_powerup", {
                         codigo: codigo,
@@ -863,10 +928,10 @@
             // Mostrar notificación a todos
             mostrarNotificacion(mensaje, 8000);
             
-            // Si soy el penalizado, mostrar alerta después de un momento
+            // Si soy el penalizado, mostrar modal después de un momento
             if (penInfo.jugador === jugadorFinal) {
                 setTimeout(() => {
-                    alert(`❌ PENALIZACIÓN POR BASTA INVÁLIDO\n\n${penInfo.razon}\n\nPenalización: ${penInfo.penalizacion} puntos\n\n⚠️ Asegúrate de tener al menos 3 respuestas VÁLIDAS antes de presionar BASTA.`);
+                    mostrarModalPenalizacion(penInfo.razon, penInfo.penalizacion);
                 }, 1500);
             }
             
@@ -1664,6 +1729,88 @@
     
     jugarDeNuevoBtn.addEventListener("click", volverASala);
     salirBtn.addEventListener("click", volverAlMenu);
+
+    // Funciones para modal de penalización
+    function mostrarModalPenalizacion(razon, penalizacion) {
+        const modal = document.getElementById('penalizacion-modal');
+        const mensaje = document.getElementById('penalizacion-mensaje');
+        const puntos = document.getElementById('penalizacion-puntos');
+        
+        mensaje.textContent = razon;
+        puntos.textContent = `Penalización: ${penalizacion} puntos`;
+        
+        modal.style.display = 'flex';
+        
+        if (typeof soundSystem !== 'undefined') {
+            soundSystem.playError();
+        }
+    }
+    
+    function cerrarModalPenalizacion() {
+        document.getElementById('penalizacion-modal').style.display = 'none';
+    }
+
+    // Variables para powerups
+    let powerupActual = null;
+
+    // Funciones para modal de pista IA
+    function mostrarModalPistaIA(categorias, powerup) {
+        powerupActual = powerup;
+        const modal = document.getElementById('pista-ia-modal');
+        const select = document.getElementById('categoria-select');
+        
+        // Limpiar y llenar el select
+        select.innerHTML = '';
+        categorias.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            select.appendChild(option);
+        });
+        
+        modal.style.display = 'flex';
+    }
+    
+    function confirmarPistaIA() {
+        const select = document.getElementById('categoria-select');
+        const categoria = select.value;
+        
+        if (categoria) {
+            socket.emit("usar_powerup", {
+                codigo: codigo,
+                jugador: jugadorFinal,
+                powerup: powerupActual,
+                categoria: categoria
+            });
+        }
+        
+        cerrarModalPistaIA();
+    }
+    
+    function cerrarModalPistaIA() {
+        document.getElementById('pista-ia-modal').style.display = 'none';
+        powerupActual = null;
+    }
+
+    // Funciones para modal de multiplicador
+    function mostrarModalMultiplicador(powerup) {
+        powerupActual = powerup;
+        document.getElementById('multiplicador-modal').style.display = 'flex';
+    }
+    
+    function confirmarMultiplicador() {
+        socket.emit("usar_powerup", {
+            codigo: codigo,
+            jugador: jugadorFinal,
+            powerup: powerupActual
+        });
+        cerrarModalMultiplicador();
+    }
+    
+    function cerrarModalMultiplicador() {
+        document.getElementById('multiplicador-modal').style.display = 'none';
+        powerupActual = null;
+    }
 
     function crearConfeti() {
         const colores = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
